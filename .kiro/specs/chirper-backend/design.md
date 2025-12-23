@@ -391,13 +391,13 @@ sequenceDiagram
 | Intent | ユーザー登録とログインのREST APIエンドポイントを提供 |
 | Requirements | 1.1, 1.2, 1.3, 1.4, 11.1, 11.2 |
 
-**Responsibilities & Constraints**
+##### Responsibilities & Constraints
 - ユーザー登録とログインのHTTPリクエストを受け付け、適切なユースケースに委譲
 - リクエストバリデーション（Bean Validation）を実行
 - レスポンスをJSON形式で返却
 - トランザクション境界はApplication層で制御（Controller層は関与しない）
 
-**Dependencies**
+##### Dependencies
 - Inbound: Frontend Service — HTTP/REST経由でリクエスト受信 (P0)
 - Outbound: RegisterUserUseCase — ユーザー登録処理 (P0)
 - Outbound: LoginUserUseCase — ログイン処理 (P0)
@@ -442,7 +442,7 @@ sequenceDiagram
 }
 ```
 
-**Implementation Notes**
+##### Implementation Notes
 - **Integration**: Spring MVC `@RestController`、`@PostMapping`アノテーションを使用
 - **Validation**: `@Valid`アノテーションによるBean Validation実行、`@Size`、`@Email`、`@NotNull`制約を適用
 - **Risks**: パスワード平文がログに出力されないよう、ログ設定でマスキングを実施
@@ -454,12 +454,12 @@ sequenceDiagram
 | Intent | ツイート投稿・取得・削除のREST APIエンドポイントを提供 |
 | Requirements | 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 11.3, 11.4, 11.5 |
 
-**Responsibilities & Constraints**
+##### Responsibilities & Constraints
 - ツイート投稿、取得、削除のHTTPリクエストを受け付け、適切なユースケースに委譲
 - JWT認証を必須とし、ユーザーIDを抽出
 - リクエストバリデーション（280文字制限等）を実行
 
-**Dependencies**
+##### Dependencies
 - Inbound: Frontend Service — HTTP/REST経由でリクエスト受信 (P0)
 - Outbound: CreateTweetUseCase — ツイート投稿処理 (P0)
 - Outbound: DeleteTweetUseCase — ツイート削除処理 (P0)
@@ -475,7 +475,7 @@ sequenceDiagram
 | GET | /api/v1/tweets/{tweetId} | N/A | TweetResponse (tweetId, userId, content, createdAt, likesCount, retweetsCount) | 404 (NOT_FOUND), 500 (INTERNAL_ERROR) |
 | DELETE | /api/v1/tweets/{tweetId} | N/A | 204 No Content | 401 (UNAUTHORIZED), 403 (FORBIDDEN), 404 (NOT_FOUND), 500 (INTERNAL_ERROR) |
 
-**Implementation Notes**
+##### Implementation Notes
 - **Integration**: JWT認証フィルターでユーザーIDを抽出、SecurityContextから取得
 - **Validation**: `@Size(max=280)`でツイート本文の長さを検証
 - **Risks**: 削除権限チェック（投稿者本人のみ削除可能）をUseCase層で実施
@@ -487,12 +487,12 @@ sequenceDiagram
 | Intent | タイムライン取得のREST APIエンドポイントを提供 |
 | Requirements | 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 11.6 |
 
-**Responsibilities & Constraints**
+##### Responsibilities & Constraints
 - タイムライン取得のHTTPリクエストを受け付け、GetTimelineUseCaseに委譲
 - ページネーションパラメータ（page、size）を検証
 - JWT認証を必須とし、ユーザーIDを抽出
 
-**Dependencies**
+##### Dependencies
 - Inbound: Frontend Service — HTTP/REST経由でリクエスト受信 (P0)
 - Outbound: GetTimelineUseCase — タイムライン取得処理 (P0)
 
@@ -504,7 +504,7 @@ sequenceDiagram
 |--------|----------|---------|----------|--------|
 | GET | /api/v1/timeline | QueryParams (page: int, size: int) | TimelineResponse (tweets: TweetDto[], totalPages: int) | 400 (VALIDATION_ERROR), 401 (UNAUTHORIZED), 500 (INTERNAL_ERROR) |
 
-**Implementation Notes**
+##### Implementation Notes
 - **Integration**: `@RequestParam`でページネーションパラメータを受け取り、デフォルト値（page=0、size=20）を設定
 - **Validation**: sizeの最大値を100に制限
 - **Risks**: フォローユーザーが0件の場合、空のタイムラインを返却（エラーとしない）
@@ -516,12 +516,12 @@ sequenceDiagram
 | Intent | ユーザープロフィール取得・更新のREST APIエンドポイントを提供 |
 | Requirements | 1.7, 1.8, 11.7, 11.8 |
 
-**Responsibilities & Constraints**
+##### Responsibilities & Constraints
 - ユーザープロフィール取得・更新のHTTPリクエストを受け付け、適切なユースケースに委譲
 - JWT認証を必須とし、ユーザーIDを抽出
 - プロフィール更新時は自分自身のプロフィールのみ更新可能
 
-**Dependencies**
+##### Dependencies
 - Inbound: Frontend Service — HTTP/REST経由でリクエスト受信 (P0)
 - Outbound: GetUserProfileUseCase — ユーザープロフィール取得処理 (P0)
 - Outbound: UpdateProfileUseCase — プロフィール更新処理 (P0)
@@ -573,7 +573,7 @@ sequenceDiagram
 }
 ```
 
-**Implementation Notes**
+##### Implementation Notes
 - **Integration**: Spring MVC `@RestController`、`@GetMapping`、`@PutMapping`アノテーションを使用
 - **Validation**: `@Valid`アノテーションによるBean Validation実行
 - **Risks**: フォロー数・フォロワー数の集計にN+1クエリが発生しないよう、JOINまたはCOUNTサブクエリを使用
@@ -587,13 +587,13 @@ sequenceDiagram
 | Intent | ユーザー登録ビジネスロジックを実行し、トランザクション制御を行う |
 | Requirements | 1.1, 1.2 |
 
-**Responsibilities & Constraints**
+##### Responsibilities & Constraints
 - ユーザー名の一意性をチェック
 - User Entityを生成（パスワードハッシュ化を含む）
 - IUserRepositoryを使用してデータベースに永続化
 - トランザクション境界を管理（`@Transactional`）
 
-**Dependencies**
+##### Dependencies
 - Inbound: AuthController — ユーザー登録リクエスト (P0)
 - Outbound: IUserRepository — ユーザー存在確認・保存 (P0)
 - Outbound: User Entity — ドメインロジック実行 (P0)
@@ -633,7 +633,7 @@ record ErrorResponse(
 - **Postconditions**: ユーザーがデータベースに保存され、UserResponseが返却される
 - **Invariants**: ユーザー名とメールアドレスの一意性が保証される
 
-**Implementation Notes**
+##### Implementation Notes
 - **Integration**: `@Transactional`アノテーションでトランザクション境界を定義
 - **Validation**: ユーザー名重複チェック時、409 CONFLICTエラーを返却
 - **Risks**: パスワードハッシュ化のコスト係数（10）により、登録処理に数百ミリ秒かかる可能性がある
@@ -645,14 +645,14 @@ record ErrorResponse(
 | Intent | フォローユーザーのツイートをタイムライン形式で取得 |
 | Requirements | 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7 |
 
-**Responsibilities & Constraints**
+##### Responsibilities & Constraints
 - フォローユーザーIDリストを取得
 - TimelineServiceを使用してツイートを取得（N+1クエリ回避）
 - 現在のユーザーIDを元に、各ツイートのいいね済み・リツイート済み状態を判定（ILikeRepository、IRetweetRepositoryを使用）
 - ページネーション処理を実行
 - タイムラインレスポンスを生成（総ページ数、各ツイートのlikedByCurrentUser、retweetedByCurrentUserを含む）
 
-**Dependencies**
+##### Dependencies
 - Inbound: TimelineController — タイムライン取得リクエスト (P0)
 - Outbound: IFollowRepository — フォローユーザーID取得 (P0)
 - Outbound: TimelineService — タイムライン生成ロジック (P0)
@@ -702,7 +702,7 @@ record TweetDto(
 - **Postconditions**: ページネーションされたタイムラインが返却される
 - **Invariants**: 削除されたツイート（is_deleted=true）は結果に含まれない
 
-**Implementation Notes**
+##### Implementation Notes
 - **Integration**: TimelineServiceでN+1クエリ対策（JOIN FETCHまたは@EntityGraph）を実装
 - **Validation**: フォローユーザーが0件の場合、空のタイムラインを返却
 - **Risks**: フォロー数が多い場合、クエリパフォーマンスに影響。インデックス最適化とキャッシング（Phase 2）で対応
@@ -716,13 +716,13 @@ record TweetDto(
 | Intent | ユーザーのビジネスロジックとビジネスルールをカプセル化 |
 | Requirements | 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7 |
 
-**Responsibilities & Constraints**
+##### Responsibilities & Constraints
 - ユーザー名、メールアドレス、パスワードの妥当性検証
 - パスワードハッシュ化（bcrypt、コスト係数10）
 - プロフィール情報の更新ロジック
 - 不変性: User Entityは一度生成されたらIDが変更されない
 
-**Dependencies**
+##### Dependencies
 - Inbound: RegisterUserUseCase, LoginUserUseCase, UpdateProfileUseCase — ユーザービジネスロジック実行 (P0)
 - Outbound: Password VO — パスワード値オブジェクト (P0)
 - Outbound: Email VO — メールアドレス値オブジェクト (P0)
@@ -772,7 +772,7 @@ record Password(String hashedValue) {
 }
 ```
 
-**Implementation Notes**
+##### Implementation Notes
 - **Integration**: Domain層は純粋なJavaクラスとして実装（Spring依存なし）
 - **Validation**: 値オブジェクトのコンストラクタでバリデーションを実行
 - **Risks**: bcryptのコスト係数を高くしすぎるとパフォーマンス低下。10が推奨値
@@ -784,13 +784,13 @@ record Password(String hashedValue) {
 | Intent | ツイートのビジネスロジックとビジネスルールをカプセル化 |
 | Requirements | 2.1, 2.2, 2.3, 2.4, 2.5, 2.6 |
 
-**Responsibilities & Constraints**
+##### Responsibilities & Constraints
 - ツイート本文の妥当性検証（1-280文字）
 - 論理削除フラグの管理
 - 投稿者による削除権限の検証
 - 不変性: TweetIdは一度生成されたら変更されない
 
-**Dependencies**
+##### Dependencies
 - Inbound: CreateTweetUseCase, DeleteTweetUseCase — ツイートビジネスロジック実行 (P0)
 - Outbound: TweetContent VO — ツイート本文値オブジェクト (P0)
 - Outbound: UserId VO — 投稿者ID値オブジェクト (P0)
@@ -817,7 +817,7 @@ record TweetContent(String value) {
 }
 ```
 
-**Implementation Notes**
+##### Implementation Notes
 - **Integration**: 論理削除フラグ（is_deleted）をDomain層で管理し、削除されたツイートは取得APIで返却しない
 - **Validation**: TweetContentの値オブジェクトで280文字制限を強制
 - **Risks**: 論理削除により、削除されたツイートがデータベースに残る。定期的なパージ処理（Phase 2）で対応
@@ -829,13 +829,13 @@ record TweetContent(String value) {
 | Intent | パスワード検証とJWT生成のドメインサービス |
 | Requirements | 1.3, 1.4, 1.5, 1.6, 6.1, 6.2, 6.3 |
 
-**Responsibilities & Constraints**
+##### Responsibilities & Constraints
 - パスワードの検証（bcryptでハッシュ比較）
 - JWTトークンの生成（有効期限1時間）
 - JWTトークンの検証（署名、有効期限チェック）
 - トークンからユーザーIDの抽出
 
-**Dependencies**
+##### Dependencies
 - Inbound: LoginUserUseCase, JwtAuthenticationFilter — 認証処理 (P0)
 - Outbound: Password VO — パスワード値オブジェクト (P0)
 - External: jjwt library — JWT生成・検証 (P0)
@@ -863,7 +863,7 @@ enum AuthenticationError {
 - **Postconditions**: 有効なJWTトークンが生成され、検証される
 - **Invariants**: JWTトークンの有効期限は1時間
 
-**Implementation Notes**
+##### Implementation Notes
 - **Integration**: jjwt 0.13.0を使用してJWT生成・検証を実装。署名アルゴリズムはHS256（対称鍵）またはRS256（非対称鍵）を選択
 - **Validation**: JWTシークレットキーは環境変数で管理し、ハードコーディングを禁止
 - **Risks**: シークレットキーの漏洩リスク。定期的な鍵ローテーション（Phase 2）で対応
@@ -875,12 +875,12 @@ enum AuthenticationError {
 | Intent | ユーザーデータ永続化の抽象化インターフェース |
 | Requirements | 1.1, 1.2, 1.3, 1.4, 1.7, 7.7 |
 
-**Responsibilities & Constraints**
+##### Responsibilities & Constraints
 - ユーザーの保存、検索、更新を抽象化
 - Domain層で定義し、Infrastructure層で実装（依存性逆転の原則）
 - データベース固有の実装詳細を隠蔽
 
-**Dependencies**
+##### Dependencies
 - Inbound: RegisterUserUseCase, LoginUserUseCase, UpdateProfileUseCase — データアクセス (P0)
 - Outbound: Infrastructure層で実装 — 実装詳細は隠蔽 (P0)
 
@@ -902,7 +902,7 @@ public interface IUserRepository {
 - **Postconditions**: データベースに永続化され、Entityが返却される
 - **Invariants**: ユーザー名とメールアドレスの一意性が保証される
 
-**Implementation Notes**
+##### Implementation Notes
 - **Integration**: Infrastructure層でSpring Data JPA Repositoryとして実装
 - **Validation**: 一意性制約違反時、Repository層でDataIntegrityViolationExceptionをスロー
 - **Risks**: Domain EntityとJPA Entityの変換コスト。マッピングロジックを最適化
@@ -916,20 +916,20 @@ public interface IUserRepository {
 | Intent | IUserRepositoryの具体実装（Spring Data JPA使用） |
 | Requirements | 7.4, 7.7 |
 
-**Responsibilities & Constraints**
+##### Responsibilities & Constraints
 - IUserRepositoryインターフェースを実装
 - Domain EntityとJPA Entityの相互変換
 - Spring Data JPA Repositoryを使用したデータアクセス
 - データベーストランザクション管理（Spring管理）
 
-**Dependencies**
+##### Dependencies
 - Inbound: Application層の各UseCase — データアクセス要求 (P0)
 - Outbound: UserJpaEntity — JPA永続化エンティティ (P0)
 - External: Spring Data JPA — データアクセスフレームワーク (P0)
 
 **Contracts**: [ ] Service [ ] API [ ] Event [ ] Batch [ ] State
 
-**Implementation Notes**
+##### Implementation Notes
 - **Integration**: Spring Data JPA Repositoryを継承し、カスタムクエリメソッドを実装
 - **Validation**: Domain EntityからJPA Entityへの変換時、値オブジェクトを文字列/UUIDに変換
 - **Risks**: Domain EntityとJPA Entityの二重管理。DRY原則に反するが、アーキテクチャの分離を優先
@@ -941,20 +941,20 @@ public interface IUserRepository {
 | Intent | ITweetRepositoryの具体実装（N+1クエリ対策含む） |
 | Requirements | 7.4, 7.7, 3.5 |
 
-**Responsibilities & Constraints**
+##### Responsibilities & Constraints
 - ITweetRepositoryインターフェースを実装
 - タイムライン取得時のN+1クエリ問題を回避（JOIN FETCHまたは@EntityGraph）
 - ページネーション処理の実装
 - 論理削除されたツイートの除外
 
-**Dependencies**
+##### Dependencies
 - Inbound: CreateTweetUseCase, DeleteTweetUseCase, GetTimelineUseCase — データアクセス要求 (P0)
 - Outbound: TweetJpaEntity — JPA永続化エンティティ (P0)
 - External: Spring Data JPA — データアクセスフレームワーク (P0)
 
 **Contracts**: [ ] Service [ ] API [ ] Event [ ] Batch [ ] State
 
-**Implementation Notes**
+##### Implementation Notes
 - **Integration**: `@Query`アノテーションでJOIN FETCHクエリを実装、または`@EntityGraph`でイーガーロードを設定
 - **Validation**: N+1クエリ問題の検証のため、統合テストでクエリ実行回数をアサート
 - **Risks**: JOIN FETCHによるカルテシアン積の発生。適切なインデックスとLIMIT句で対応
