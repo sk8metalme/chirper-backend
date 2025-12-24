@@ -3,9 +3,9 @@ package com.chirper.presentation.controller;
 import com.chirper.application.usecase.FollowUserUseCase;
 import com.chirper.application.usecase.LikeTweetUseCase;
 import com.chirper.application.usecase.RetweetUseCase;
-import com.chirper.domain.repository.IFollowRepository;
-import com.chirper.domain.repository.ILikeRepository;
-import com.chirper.domain.repository.IRetweetRepository;
+import com.chirper.application.usecase.UnfollowUserUseCase;
+import com.chirper.application.usecase.UnlikeTweetUseCase;
+import com.chirper.application.usecase.UnretweetTweetUseCase;
 import com.chirper.domain.valueobject.TweetId;
 import com.chirper.domain.valueobject.UserId;
 import com.chirper.infrastructure.security.JwtUtil;
@@ -54,19 +54,19 @@ class SocialControllerTest {
     private FollowUserUseCase followUserUseCase;
 
     @MockBean
+    private UnfollowUserUseCase unfollowUserUseCase;
+
+    @MockBean
     private LikeTweetUseCase likeTweetUseCase;
+
+    @MockBean
+    private UnlikeTweetUseCase unlikeTweetUseCase;
 
     @MockBean
     private RetweetUseCase retweetUseCase;
 
     @MockBean
-    private IFollowRepository followRepository;
-
-    @MockBean
-    private ILikeRepository likeRepository;
-
-    @MockBean
-    private IRetweetRepository retweetRepository;
+    private UnretweetTweetUseCase unretweetTweetUseCase;
 
     @MockBean
     private com.chirper.infrastructure.security.JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -138,14 +138,14 @@ class SocialControllerTest {
     @WithMockUser(username = "550e8400-e29b-41d4-a716-446655440000")
     void unfollowUser_success() throws Exception {
         // Arrange
-        doNothing().when(followRepository).delete(any(UserId.class), eq(targetUserId));
+        doNothing().when(unfollowUserUseCase).execute(any(UserId.class), eq(targetUserId));
 
         // Act & Assert
         mockMvc.perform(delete("/api/v1/users/" + targetUserId.value() + "/follow")
                 .with(csrf()))
             .andExpect(status().isNoContent());
 
-        verify(followRepository, times(1)).delete(any(UserId.class), eq(targetUserId));
+        verify(unfollowUserUseCase, times(1)).execute(any(UserId.class), eq(targetUserId));
     }
 
     // いいね機能のテスト
@@ -185,14 +185,14 @@ class SocialControllerTest {
     @WithMockUser(username = "550e8400-e29b-41d4-a716-446655440000")
     void unlikeTweet_success() throws Exception {
         // Arrange
-        doNothing().when(likeRepository).delete(any(UserId.class), eq(testTweetId));
+        doNothing().when(unlikeTweetUseCase).execute(any(UserId.class), eq(testTweetId));
 
         // Act & Assert
         mockMvc.perform(delete("/api/v1/tweets/" + testTweetId.value() + "/like")
                 .with(csrf()))
             .andExpect(status().isNoContent());
 
-        verify(likeRepository, times(1)).delete(any(UserId.class), eq(testTweetId));
+        verify(unlikeTweetUseCase, times(1)).execute(any(UserId.class), eq(testTweetId));
     }
 
     // リツイート機能のテスト
@@ -232,14 +232,14 @@ class SocialControllerTest {
     @WithMockUser(username = "550e8400-e29b-41d4-a716-446655440000")
     void unretweetTweet_success() throws Exception {
         // Arrange
-        doNothing().when(retweetRepository).delete(any(UserId.class), eq(testTweetId));
+        doNothing().when(unretweetTweetUseCase).execute(any(UserId.class), eq(testTweetId));
 
         // Act & Assert
         mockMvc.perform(delete("/api/v1/tweets/" + testTweetId.value() + "/retweet")
                 .with(csrf()))
             .andExpect(status().isNoContent());
 
-        verify(retweetRepository, times(1)).delete(any(UserId.class), eq(testTweetId));
+        verify(unretweetTweetUseCase, times(1)).execute(any(UserId.class), eq(testTweetId));
     }
 
     // 認証エラーテスト

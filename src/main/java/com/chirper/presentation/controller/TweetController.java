@@ -2,10 +2,8 @@ package com.chirper.presentation.controller;
 
 import com.chirper.application.usecase.CreateTweetUseCase;
 import com.chirper.application.usecase.DeleteTweetUseCase;
+import com.chirper.application.usecase.GetTweetUseCase;
 import com.chirper.domain.entity.Tweet;
-import com.chirper.domain.repository.ILikeRepository;
-import com.chirper.domain.repository.IRetweetRepository;
-import com.chirper.domain.repository.ITweetRepository;
 import com.chirper.domain.valueobject.TweetId;
 import com.chirper.domain.valueobject.UserId;
 import com.chirper.presentation.dto.tweet.CreateTweetRequest;
@@ -33,22 +31,16 @@ public class TweetController {
 
     private final CreateTweetUseCase createTweetUseCase;
     private final DeleteTweetUseCase deleteTweetUseCase;
-    private final ITweetRepository tweetRepository;
-    private final ILikeRepository likeRepository;
-    private final IRetweetRepository retweetRepository;
+    private final GetTweetUseCase getTweetUseCase;
 
     public TweetController(
         CreateTweetUseCase createTweetUseCase,
         DeleteTweetUseCase deleteTweetUseCase,
-        ITweetRepository tweetRepository,
-        ILikeRepository likeRepository,
-        IRetweetRepository retweetRepository
+        GetTweetUseCase getTweetUseCase
     ) {
         this.createTweetUseCase = createTweetUseCase;
         this.deleteTweetUseCase = deleteTweetUseCase;
-        this.tweetRepository = tweetRepository;
-        this.likeRepository = likeRepository;
-        this.retweetRepository = retweetRepository;
+        this.getTweetUseCase = getTweetUseCase;
     }
 
     /**
@@ -92,15 +84,16 @@ public class TweetController {
         // 1. TweetIdを生成
         TweetId id = new TweetId(java.util.UUID.fromString(tweetId));
 
-        // 2. ツイートを取得
-        Tweet tweet = tweetRepository.findById(id)
-            .orElseThrow(() -> new BusinessException("NOT_FOUND", "ツイートが見つかりません"));
+        // 2. GetTweetUseCaseを実行
+        GetTweetUseCase.TweetResult result;
+        try {
+            result = getTweetUseCase.execute(id);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException("NOT_FOUND", "ツイートが見つかりません");
+        }
 
-        // 3. いいね数・リツイート数を取得
-        int likesCount = likeRepository.findByTweetId(id).size();
-        int retweetsCount = retweetRepository.findByTweetId(id).size();
-
-        // 4. レスポンスを作成（ユーザー情報は簡略化、likedByCurrentUser/retweetedByCurrentUserはfalse固定）
+        // 3. レスポンスを作成（ユーザー情報は簡略化、likedByCurrentUser/retweetedByCurrentUserはfalse固定）
+        Tweet tweet = result.tweet();
         TweetResponse response = new TweetResponse(
             tweet.getId().value(),
             tweet.getUserId().value(),
@@ -109,8 +102,8 @@ public class TweetController {
             "", // avatarUrl - 実装省略
             tweet.getContent().value(),
             tweet.getCreatedAt(),
-            likesCount,
-            retweetsCount,
+            result.likesCount(),
+            result.retweetsCount(),
             false, // likedByCurrentUser - 実装省略
             false  // retweetedByCurrentUser - 実装省略
         );

@@ -3,9 +3,9 @@ package com.chirper.presentation.controller;
 import com.chirper.application.usecase.FollowUserUseCase;
 import com.chirper.application.usecase.LikeTweetUseCase;
 import com.chirper.application.usecase.RetweetUseCase;
-import com.chirper.domain.repository.IFollowRepository;
-import com.chirper.domain.repository.ILikeRepository;
-import com.chirper.domain.repository.IRetweetRepository;
+import com.chirper.application.usecase.UnfollowUserUseCase;
+import com.chirper.application.usecase.UnlikeTweetUseCase;
+import com.chirper.application.usecase.UnretweetTweetUseCase;
 import com.chirper.domain.valueobject.TweetId;
 import com.chirper.domain.valueobject.UserId;
 import com.chirper.presentation.exception.BusinessException;
@@ -31,26 +31,26 @@ import org.springframework.web.bind.annotation.*;
 public class SocialController {
 
     private final FollowUserUseCase followUserUseCase;
+    private final UnfollowUserUseCase unfollowUserUseCase;
     private final LikeTweetUseCase likeTweetUseCase;
+    private final UnlikeTweetUseCase unlikeTweetUseCase;
     private final RetweetUseCase retweetUseCase;
-    private final IFollowRepository followRepository;
-    private final ILikeRepository likeRepository;
-    private final IRetweetRepository retweetRepository;
+    private final UnretweetTweetUseCase unretweetTweetUseCase;
 
     public SocialController(
         FollowUserUseCase followUserUseCase,
+        UnfollowUserUseCase unfollowUserUseCase,
         LikeTweetUseCase likeTweetUseCase,
+        UnlikeTweetUseCase unlikeTweetUseCase,
         RetweetUseCase retweetUseCase,
-        IFollowRepository followRepository,
-        ILikeRepository likeRepository,
-        IRetweetRepository retweetRepository
+        UnretweetTweetUseCase unretweetTweetUseCase
     ) {
         this.followUserUseCase = followUserUseCase;
+        this.unfollowUserUseCase = unfollowUserUseCase;
         this.likeTweetUseCase = likeTweetUseCase;
+        this.unlikeTweetUseCase = unlikeTweetUseCase;
         this.retweetUseCase = retweetUseCase;
-        this.followRepository = followRepository;
-        this.likeRepository = likeRepository;
-        this.retweetRepository = retweetRepository;
+        this.unretweetTweetUseCase = unretweetTweetUseCase;
     }
 
     /**
@@ -105,8 +105,8 @@ public class SocialController {
         // 2. フォロー解除対象ユーザーIDを生成
         UserId followedUserId = UserId.of(userId);
 
-        // 3. フォロー関係を削除
-        followRepository.delete(followerUserId, followedUserId);
+        // 3. UnfollowUserUseCaseを実行
+        unfollowUserUseCase.execute(followerUserId, followedUserId);
 
         return ResponseEntity.noContent().build();
     }
@@ -161,8 +161,8 @@ public class SocialController {
         // 2. TweetIdを生成
         TweetId id = new TweetId(java.util.UUID.fromString(tweetId));
 
-        // 3. いいね記録を削除
-        likeRepository.delete(userId, id);
+        // 3. UnlikeTweetUseCaseを実行
+        unlikeTweetUseCase.execute(userId, id);
 
         return ResponseEntity.noContent().build();
     }
@@ -217,8 +217,8 @@ public class SocialController {
         // 2. TweetIdを生成
         TweetId id = new TweetId(java.util.UUID.fromString(tweetId));
 
-        // 3. リツイート記録を削除
-        retweetRepository.delete(userId, id);
+        // 3. UnretweetTweetUseCaseを実行
+        unretweetTweetUseCase.execute(userId, id);
 
         return ResponseEntity.noContent().build();
     }

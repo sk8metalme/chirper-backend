@@ -1,8 +1,8 @@
 package com.chirper.presentation.controller;
 
+import com.chirper.application.usecase.GetUserProfileUseCase;
 import com.chirper.application.usecase.UpdateProfileUseCase;
 import com.chirper.domain.entity.User;
-import com.chirper.domain.repository.IUserRepository;
 import com.chirper.domain.valueobject.Username;
 import com.chirper.presentation.dto.user.UpdateProfileRequest;
 import com.chirper.presentation.dto.user.UpdateProfileResponse;
@@ -19,19 +19,25 @@ import java.util.List;
 @RequestMapping("/api/v1/users")
 public class UserController {
 
-    private final IUserRepository userRepository;
+    private final GetUserProfileUseCase getUserProfileUseCase;
     private final UpdateProfileUseCase updateProfileUseCase;
 
-    public UserController(IUserRepository userRepository, UpdateProfileUseCase updateProfileUseCase) {
-        this.userRepository = userRepository;
+    public UserController(GetUserProfileUseCase getUserProfileUseCase, UpdateProfileUseCase updateProfileUseCase) {
+        this.getUserProfileUseCase = getUserProfileUseCase;
         this.updateProfileUseCase = updateProfileUseCase;
     }
 
     @GetMapping("/{username}")
     public ResponseEntity<UserProfileResponse> getUserProfile(@PathVariable String username) {
-        var user = userRepository.findByUsername(new Username(username))
-            .orElseThrow(() -> new BusinessException("NOT_FOUND", "ユーザーが見つかりません"));
+        // 1. GetUserProfileUseCaseを実行
+        User user;
+        try {
+            user = getUserProfileUseCase.execute(new Username(username));
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException("NOT_FOUND", "ユーザーが見つかりません");
+        }
 
+        // 2. レスポンスを作成
         UserProfileResponse response = new UserProfileResponse(
             user.getId().value(),
             user.getUsername().value(),

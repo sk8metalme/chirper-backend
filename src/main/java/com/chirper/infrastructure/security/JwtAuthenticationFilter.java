@@ -12,6 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Optional;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -36,8 +37,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String jwt = authHeader.substring(7);
 
         try {
-            if (jwtUtil.isTokenValid(jwt)) {
-                String userId = jwtUtil.extractUserId(jwt);
+            // 最適化: 1回のパースで検証とユーザーID抽出を行う
+            Optional<String> userIdOpt = jwtUtil.validateAndExtractUserId(jwt);
+            if (userIdOpt.isPresent()) {
+                String userId = userIdOpt.get();
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     userId,
@@ -49,7 +52,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
-            logger.error("JWT authentication failed", e);
+            // スタックトレースを記録せず、エラーメッセージのみを記録
+            logger.warn("JWT authentication failed: " + e.getMessage());
+            // SecurityContextにAuthenticationを設定しないことで、Spring Securityが自動的に401を返す
         }
 
         filterChain.doFilter(request, response);

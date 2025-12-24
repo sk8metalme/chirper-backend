@@ -2,8 +2,8 @@ package com.chirper.presentation.controller;
 
 import com.chirper.application.usecase.CreateTweetUseCase;
 import com.chirper.application.usecase.DeleteTweetUseCase;
+import com.chirper.application.usecase.GetTweetUseCase;
 import com.chirper.domain.entity.Tweet;
-import com.chirper.domain.repository.ITweetRepository;
 import com.chirper.domain.valueobject.TweetContent;
 import com.chirper.domain.valueobject.TweetId;
 import com.chirper.domain.valueobject.UserId;
@@ -59,13 +59,7 @@ class TweetControllerTest {
     private DeleteTweetUseCase deleteTweetUseCase;
 
     @MockBean
-    private ITweetRepository tweetRepository;
-
-    @MockBean
-    private com.chirper.domain.repository.ILikeRepository likeRepository;
-
-    @MockBean
-    private com.chirper.domain.repository.IRetweetRepository retweetRepository;
+    private GetTweetUseCase getTweetUseCase;
 
     @MockBean
     private com.chirper.infrastructure.security.JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -173,8 +167,9 @@ class TweetControllerTest {
     @DisplayName("GET /api/v1/tweets/{tweetId} - ツイート取得成功（200 OK）")
     void getTweet_success() throws Exception {
         // Arrange
-        when(tweetRepository.findById(testTweetId))
-            .thenReturn(Optional.of(testTweet));
+        GetTweetUseCase.TweetResult tweetResult = new GetTweetUseCase.TweetResult(testTweet, 5, 3);
+        when(getTweetUseCase.execute(testTweetId))
+            .thenReturn(tweetResult);
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/tweets/" + testTweetId.value()))
@@ -183,10 +178,10 @@ class TweetControllerTest {
             .andExpect(jsonPath("$.userId").value(testUserId.value().toString()))
             .andExpect(jsonPath("$.content").value("テストツイート"))
             .andExpect(jsonPath("$.createdAt").exists())
-            .andExpect(jsonPath("$.likesCount").exists())
-            .andExpect(jsonPath("$.retweetsCount").exists());
+            .andExpect(jsonPath("$.likesCount").value(5))
+            .andExpect(jsonPath("$.retweetsCount").value(3));
 
-        verify(tweetRepository, times(1)).findById(testTweetId);
+        verify(getTweetUseCase, times(1)).execute(testTweetId);
     }
 
     @Test
@@ -194,14 +189,14 @@ class TweetControllerTest {
     void getTweet_notFound() throws Exception {
         // Arrange
         TweetId nonExistentId = new TweetId(UUID.randomUUID());
-        when(tweetRepository.findById(nonExistentId))
-            .thenReturn(Optional.empty());
+        when(getTweetUseCase.execute(nonExistentId))
+            .thenThrow(new IllegalArgumentException("Tweet not found"));
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/tweets/" + nonExistentId.value()))
             .andExpect(status().isNotFound());
 
-        verify(tweetRepository, times(1)).findById(nonExistentId);
+        verify(getTweetUseCase, times(1)).execute(nonExistentId);
     }
 
     @Test
