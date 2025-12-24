@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: chirper-postgres
+    environment:
+      POSTGRES_DB: chirper
+      POSTGRES_USER: chirper_user
+      POSTGRES_PASSWORD: chirper_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=C"
+      TZ: UTC
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chirper_user -d chirper"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
