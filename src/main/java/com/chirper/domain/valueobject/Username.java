@@ -10,7 +10,7 @@ public record Username(String value) {
     private static final int MIN_LENGTH = 3;
     private static final int MAX_LENGTH = 20;
 
-    public Username {
+    public Username(String value) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("Username cannot be null or blank");
         }
@@ -23,7 +23,7 @@ public record Username(String value) {
             );
         }
 
-        value = trimmedValue;
+        this.value = trimmedValue;
     }
 
     @Override

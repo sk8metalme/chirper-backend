@@ -64,8 +64,11 @@ public class TimelineService {
             throw new IllegalArgumentException("Size must be positive");
         }
 
-        // 注: 実際の実装では、リポジトリにカウントメソッドを追加する必要があります
-        // ここでは、インフラストラクチャ層での実装を想定したプレースホルダーです
-        return 0;
+        // TODO: Phase 4で実装予定
+        // リポジトリにカウントメソッドを追加する必要があります
+        // ITweetRepository.countByUserIds(List<UserId> userIds) の実装が必要
+        throw new UnsupportedOperationException(
+            "calculateTotalPages is not implemented yet. " +
+            "ITweetRepository.countByUserIds() method needs to be added in Phase 4.");
     }
 }

@@ -13,7 +13,7 @@ public record Email(String value) {
         "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
     );
 
-    public Email {
+    public Email(String value) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("Email cannot be null or blank");
         }
@@ -23,7 +23,7 @@ public record Email(String value) {
             throw new IllegalArgumentException("Invalid email format: " + trimmedValue);
         }
 
-        value = trimmedValue;
+        this.value = trimmedValue;
     }
 
     @Override

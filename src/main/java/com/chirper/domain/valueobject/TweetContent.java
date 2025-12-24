@@ -10,7 +10,7 @@ public record TweetContent(String value) {
     private static final int MIN_LENGTH = 1;
     private static final int MAX_LENGTH = 280;
 
-    public TweetContent {
+    public TweetContent(String value) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("Tweet content cannot be null or blank");
         }
@@ -23,7 +23,7 @@ public record TweetContent(String value) {
             );
         }
 
-        value = trimmedValue;
+        this.value = trimmedValue;
     }
 
     @Override

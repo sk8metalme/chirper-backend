@@ -4,9 +4,9 @@ spring:
 
   # Database Configuration
   datasource:
-    url: jdbc:postgresql://localhost:5432/chirper
-    username: chirper_user
-    password: chirper_password
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/chirper}
+    username: ${DATABASE_USERNAME:chirper_user}
+    password: ${DATABASE_PASSWORD:chirper_password}
     driver-class-name: org.postgresql.Driver
 
     # HikariCP Configuration
@@ -41,9 +41,9 @@ spring:
 
   # Security Configuration
   security:
-    # JWT secret key (should be externalized in production)
+    # JWT secret key (must be set via environment variable in production)
     jwt:
-      secret: ${JWT_SECRET:your-256-bit-secret-key-change-this-in-production-please-make-it-long-enough}
+      secret: ${JWT_SECRET}
       expiration: 3600000 # 1 hour in milliseconds
 
 # Server Configuration

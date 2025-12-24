@@ -7,6 +7,7 @@ import com.chirper.domain.valueobject.UserId;
 import com.chirper.infrastructure.persistence.entity.TweetJpaEntity;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -52,7 +53,7 @@ public class TweetRepositoryImpl implements ITweetRepository {
             .map(UserId::value)
             .collect(Collectors.toList());
 
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         return springDataTweetRepository.findByUserIdInAndIsDeletedFalse(uuidList, pageable)
             .stream()
