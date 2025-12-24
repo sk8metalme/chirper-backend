@@ -36,10 +36,12 @@ public class SearchUseCase {
     /**
      * キーワードでユーザーとツイートを検索
      * @param keyword 検索キーワード（2文字以上）
+     * @param page ページ番号（0始まり）
+     * @param size ページサイズ
      * @return 検索結果（ユーザーとツイートのリスト）
      * @throws IllegalArgumentException キーワードがnull、空、または2文字未満の場合
      */
-    public SearchResult execute(String keyword) {
+    public SearchResult execute(String keyword, int page, int size) {
         if (keyword == null || keyword.trim().isEmpty()) {
             throw new IllegalArgumentException("Search keyword cannot be null or empty");
         }

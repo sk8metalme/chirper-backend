@@ -10,7 +10,7 @@ import org.springframework.test.context.TestPropertySource;
     "spring.datasource.url=jdbc:h2:mem:testdb",
     "spring.datasource.driver-class-name=org.h2.Driver",
     "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.security.jwt.secret=test-secret-key-for-junit-testing-minimum-256-bits-required-for-hs256-algorithm"
+    "jwt.secret=test-secret-key-for-junit-testing-minimum-256-bits-required-for-hs256-algorithm"
 })
 class ChirperBackendApplicationTests {
 

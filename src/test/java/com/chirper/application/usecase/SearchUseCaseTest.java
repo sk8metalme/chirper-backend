@@ -45,7 +45,7 @@ class SearchUseCaseTest {
         String keyword = "test";
 
         // Act
-        SearchUseCase.SearchResult result = searchUseCase.execute(keyword);
+        SearchUseCase.SearchResult result = searchUseCase.execute(keyword, 0, 20);
 
         // Assert
         assertThat(result).isNotNull();
@@ -60,7 +60,7 @@ class SearchUseCaseTest {
         String keyword = "a";
 
         // Act & Assert
-        assertThatThrownBy(() -> searchUseCase.execute(keyword))
+        assertThatThrownBy(() -> searchUseCase.execute(keyword, 0, 20))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Search keyword must be at least 2 characters");
     }
@@ -72,7 +72,7 @@ class SearchUseCaseTest {
         String keyword = null;
 
         // Act & Assert
-        assertThatThrownBy(() -> searchUseCase.execute(keyword))
+        assertThatThrownBy(() -> searchUseCase.execute(keyword, 0, 20))
             .isInstanceOf(IllegalArgumentException.class);
     }
 }

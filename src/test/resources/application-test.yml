@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: chirper-backend-test
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/chirper_test
+    username: chirper_user
+    password: chirper_password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+
+  flyway:
+    enabled: false
+
+jwt:
+  secret: test-secret-key-for-jwt-token-generation-must-be-at-least-32-characters-long-for-testing
+  expiration: 3600000
+
+logging:
+  level:
+    root: INFO
+    com.chirper: DEBUG
