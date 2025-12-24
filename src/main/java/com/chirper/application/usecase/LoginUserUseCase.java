@@ -21,7 +21,7 @@ import java.util.Optional;
  * - トランザクション境界を管理
  */
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class LoginUserUseCase {
 
     private final IUserRepository userRepository;
@@ -46,7 +46,7 @@ public class LoginUserUseCase {
         // 2. ユーザーを検索
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (userOptional.isEmpty()) {
-            throw new IllegalArgumentException("Authentication failed: User not found");
+            throw new IllegalArgumentException("Authentication failed: Invalid credentials");
         }
 
         User user = userOptional.get();
@@ -54,7 +54,7 @@ public class LoginUserUseCase {
         // 3. パスワードを検証
         boolean authenticated = authenticationService.authenticate(user, plainPassword);
         if (!authenticated) {
-            throw new IllegalArgumentException("Authentication failed: Invalid password");
+            throw new IllegalArgumentException("Authentication failed: Invalid credentials");
         }
 
         // 4. JWTトークンを生成

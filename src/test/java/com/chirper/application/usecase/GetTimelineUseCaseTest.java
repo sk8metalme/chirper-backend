@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -63,9 +64,9 @@ class GetTimelineUseCaseTest {
         when(timelineService.getTimeline(anyList(), eq(page), eq(size)))
             .thenReturn(List.of(tweet));
         when(likeRepository.findByUserIdAndTweetId(currentUserId, tweet.getId()))
-            .thenReturn(java.util.Optional.empty());
+            .thenReturn(Optional.empty());
         when(retweetRepository.findByUserIdAndTweetId(currentUserId, tweet.getId()))
-            .thenReturn(java.util.Optional.empty());
+            .thenReturn(Optional.empty());
 
         // Act
         GetTimelineUseCase.TimelineResult result = getTimelineUseCase.execute(currentUserId, page, size);

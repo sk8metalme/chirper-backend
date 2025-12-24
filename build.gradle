@@ -69,6 +69,12 @@ jacoco {
     toolVersion = "0.8.12"
 }
 
+def jacocoExcludes = [
+    '**/ChirperBackendApplication.class',
+    '**/config/**',
+    '**/infrastructure/persistence/entity/**'
+]
+
 jacocoTestReport {
     dependsOn test
     reports {
@@ -78,11 +84,7 @@ jacocoTestReport {
     }
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: [
-                '**/ChirperBackendApplication.class',
-                '**/config/**',
-                '**/infrastructure/persistence/entity/**'
-            ])
+            fileTree(dir: it, exclude: jacocoExcludes)
         }))
     }
 }
@@ -98,11 +100,7 @@ jacocoTestCoverageVerification {
     }
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: [
-                '**/ChirperBackendApplication.class',
-                '**/config/**',
-                '**/infrastructure/persistence/entity/**'
-            ])
+            fileTree(dir: it, exclude: jacocoExcludes)
         }))
     }
 }

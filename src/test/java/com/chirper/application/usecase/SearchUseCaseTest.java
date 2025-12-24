@@ -43,14 +43,14 @@ class SearchUseCaseTest {
     void shouldSearchSuccessfully() {
         // Arrange
         String keyword = "test";
-        User user = User.create(new Username("testuser"), new Email("test@example.com"), "password");
-        Tweet tweet = Tweet.create(UserId.generate(), new TweetContent("This is a test tweet"));
 
-        // Simplified search implementation
+        // Act
         SearchUseCase.SearchResult result = searchUseCase.execute(keyword);
 
         // Assert
         assertThat(result).isNotNull();
+        assertThat(result.users()).isEmpty();
+        assertThat(result.tweets()).isEmpty();
     }
 
     @Test
