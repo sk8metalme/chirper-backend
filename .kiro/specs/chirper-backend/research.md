@@ -68,7 +68,7 @@
 
 - **Context**: 親プロジェクトで定義されたオニオンアーキテクチャをBackend Serviceに適用
 - **Sources Consulted**:
-  - `/Users/arigatatsuya/Work/git/multi-repo/docs/michi/chirper/overview/architecture.md`
+  - 親プロジェクトアーキテクチャ設計書
 - **Findings**:
   - 4層構造: Domain、Application、Infrastructure、Presentation
   - 依存関係の方向: 外側→内側（内側は外側に依存しない）
@@ -152,5 +152,5 @@
 - [jjwt GitHub Repository](https://github.com/jwtk/jjwt)
 - [PostgreSQL JDBC Driver](https://jdbc.postgresql.org/)
 - [PostgreSQL JDBC Driver 42.7.6 Release](https://jdbc.postgresql.org/changelogs/2025-05-28-42/)
-- 親プロジェクト要件定義: `/Users/arigatatsuya/Work/git/multi-repo/docs/michi/chirper/overview/requirements.md`
-- 親プロジェクトアーキテクチャ設計: `/Users/arigatatsuya/Work/git/multi-repo/docs/michi/chirper/overview/architecture.md`
+- 親プロジェクト要件定義書
+- 親プロジェクトアーキテクチャ設計書
