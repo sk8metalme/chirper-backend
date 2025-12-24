@@ -63,6 +63,15 @@ public class TweetRepositoryImpl implements ITweetRepository {
 
     @Override
     public void delete(TweetId tweetId) {
-        springDataTweetRepository.deleteById(tweetId.value());
+        // This method cannot enforce domain rules (authorization, already-deleted checks)
+        // because it lacks the UserId parameter needed for tweet.delete(userId).
+        // Deletion must be performed at the Application layer using this pattern:
+        // 1. Optional<Tweet> tweet = repository.findById(tweetId)
+        // 2. tweet.delete(userId) - enforces domain rules
+        // 3. repository.save(tweet) - persists isDeleted flag
+        throw new UnsupportedOperationException(
+            "Physical delete is not supported. Use Application layer to perform logical delete: " +
+            "load tweet -> tweet.delete(userId) -> save(tweet)"
+        );
     }
 }
