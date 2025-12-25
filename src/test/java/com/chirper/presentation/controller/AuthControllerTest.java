@@ -3,6 +3,7 @@ package com.chirper.presentation.controller;
 import com.chirper.application.usecase.LoginUserUseCase;
 import com.chirper.application.usecase.RegisterUserUseCase;
 import com.chirper.domain.entity.User;
+import com.chirper.domain.exception.DuplicateEntityException;
 import com.chirper.domain.valueobject.Email;
 import com.chirper.domain.valueobject.UserId;
 import com.chirper.domain.valueobject.Username;
@@ -96,7 +97,7 @@ class AuthControllerTest {
         RegisterRequest request = new RegisterRequest("testuser", "test@example.com", "password123");
 
         when(registerUserUseCase.execute(any(), any(), any()))
-            .thenThrow(new IllegalArgumentException("Username already exists: testuser"));
+            .thenThrow(new DuplicateEntityException("Username already exists: testuser"));
 
         // When & Then
         mockMvc.perform(post("/api/v1/auth/register")

@@ -6,6 +6,7 @@ import com.chirper.application.usecase.RetweetUseCase;
 import com.chirper.application.usecase.UnfollowUserUseCase;
 import com.chirper.application.usecase.UnlikeTweetUseCase;
 import com.chirper.application.usecase.UnretweetTweetUseCase;
+import com.chirper.domain.exception.DuplicateEntityException;
 import com.chirper.domain.valueobject.TweetId;
 import com.chirper.domain.valueobject.UserId;
 import com.chirper.presentation.exception.BusinessException;
@@ -134,7 +135,7 @@ public class SocialController {
         // 3. いいねUseCaseを実行
         try {
             likeTweetUseCase.execute(userId, id);
-        } catch (IllegalStateException e) {
+        } catch (DuplicateEntityException e) {
             throw new BusinessException("CONFLICT", "既にいいね済みです");
         }
 
@@ -190,7 +191,7 @@ public class SocialController {
         // 3. リツイートUseCaseを実行
         try {
             retweetUseCase.execute(userId, id);
-        } catch (IllegalStateException e) {
+        } catch (DuplicateEntityException e) {
             throw new BusinessException("CONFLICT", "既にリツイート済みです");
         }
 

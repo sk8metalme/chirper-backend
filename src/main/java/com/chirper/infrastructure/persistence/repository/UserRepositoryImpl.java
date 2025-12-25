@@ -8,6 +8,7 @@ import com.chirper.domain.valueobject.Username;
 import com.chirper.infrastructure.persistence.entity.UserJpaEntity;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -62,7 +63,7 @@ public class UserRepositoryImpl implements IUserRepository {
 
     @Override
     public List<User> searchByKeyword(String keyword, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         return springDataUserRepository.searchByKeyword(keyword, pageable)
             .stream()
             .map(UserJpaEntity::toDomainEntity)

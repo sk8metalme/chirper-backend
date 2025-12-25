@@ -53,10 +53,10 @@ public class GetTweetUseCase {
             .orElseThrow(() -> new EntityNotFoundException("ツイートが見つかりません"));
 
         // いいね数とリツイート数を取得
-        int likesCount = likeRepository.findByTweetId(tweetId).size();
-        int retweetsCount = retweetRepository.findByTweetId(tweetId).size();
+        long likesCount = likeRepository.countByTweetId(tweetId);
+        long retweetsCount = retweetRepository.countByTweetId(tweetId);
 
-        return new TweetResult(tweet, likesCount, retweetsCount);
+        return new TweetResult(tweet, (int) likesCount, (int) retweetsCount);
     }
 
     /**

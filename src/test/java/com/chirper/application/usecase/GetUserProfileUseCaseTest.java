@@ -1,6 +1,7 @@
 package com.chirper.application.usecase;
 
 import com.chirper.domain.entity.User;
+import com.chirper.domain.exception.EntityNotFoundException;
 import com.chirper.domain.repository.IUserRepository;
 import com.chirper.domain.valueobject.Email;
 import com.chirper.domain.valueobject.Username;
@@ -66,8 +67,8 @@ class GetUserProfileUseCaseTest {
 
         // Act & Assert
         assertThatThrownBy(() -> getUserProfileUseCase.execute(nonExistentUsername))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("User not found");
+            .isInstanceOf(EntityNotFoundException.class)
+            .hasMessage("ユーザーが見つかりません: nonexistent");
 
         verify(userRepository, times(1)).findByUsername(nonExistentUsername);
     }

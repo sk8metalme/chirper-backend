@@ -93,6 +93,9 @@ public class UserController {
         @Valid @RequestBody UpdateProfileRequest request
     ) {
         Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalStateException("認証情報が取得できません");
+        }
         String userIdString = authentication.getName();
         var userId = com.chirper.domain.valueobject.UserId.of(userIdString);
         updateProfileUseCase.execute(userId, request.displayName(), request.bio(), request.avatarUrl());

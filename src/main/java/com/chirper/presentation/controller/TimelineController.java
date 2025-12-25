@@ -48,6 +48,9 @@ public class TimelineController {
     ) {
         // 1. 認証情報からユーザーIDを取得
         Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalStateException("認証情報が取得できません");
+        }
         String userIdString = authentication.getName();
         UserId userId = UserId.of(userIdString);
 
