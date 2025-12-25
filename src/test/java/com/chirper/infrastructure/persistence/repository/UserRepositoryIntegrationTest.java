@@ -42,6 +42,11 @@ class UserRepositoryIntegrationTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    // ページネーション定数
+    private static final int DEFAULT_PAGE_NUMBER = 0;
+    private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final int LARGE_DATASET_SIZE = 25;
+
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine")
             .withDatabaseName("chirper_test")
@@ -191,7 +196,7 @@ class UserRepositoryIntegrationTest {
         createAndSaveUser("alice", "alice@example.com");
 
         // When
-        List<User> results = userRepository.searchByKeyword("john", 0, 10);
+        List<User> results = userRepository.searchByKeyword("john", DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
 
         // Then
         assertEquals(2, results.size());
@@ -212,7 +217,7 @@ class UserRepositoryIntegrationTest {
         userRepository.save(user2);
 
         // When
-        List<User> results = userRepository.searchByKeyword("Display", 0, 10);
+        List<User> results = userRepository.searchByKeyword("Display", DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
 
         // Then
         assertEquals(1, results.size());
@@ -223,16 +228,16 @@ class UserRepositoryIntegrationTest {
     @DisplayName("searchByKeyword() - ページネーション処理が正しく動作すること")
     void searchByKeyword_shouldSupportPagination() {
         // Given
-        for (int i = 1; i <= 25; i++) {
+        for (int i = 1; i <= LARGE_DATASET_SIZE; i++) {
             createAndSaveUser("user" + i, "user" + i + "@example.com");
         }
 
         // When - 1ページ目（10件）
-        List<User> page1 = userRepository.searchByKeyword("user", 0, 10);
+        List<User> page1 = userRepository.searchByKeyword("user", DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
         // When - 2ページ目（10件）
-        List<User> page2 = userRepository.searchByKeyword("user", 1, 10);
+        List<User> page2 = userRepository.searchByKeyword("user", 1, DEFAULT_PAGE_SIZE);
         // When - 3ページ目（5件）
-        List<User> page3 = userRepository.searchByKeyword("user", 2, 10);
+        List<User> page3 = userRepository.searchByKeyword("user", 2, DEFAULT_PAGE_SIZE);
 
         // Then
         assertEquals(10, page1.size());

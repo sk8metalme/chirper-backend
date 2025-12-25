@@ -5,6 +5,10 @@ import com.chirper.domain.entity.User;
 import com.chirper.domain.repository.ITweetRepository;
 import com.chirper.domain.repository.IUserRepository;
 import com.chirper.domain.valueobject.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,6 +48,14 @@ class TweetRepositoryIntegrationTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    // ページネーション定数
+    private static final int DEFAULT_PAGE_NUMBER = 0;
+    private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final int LARGE_DATASET_SIZE = 25;
+
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine")
             .withDatabaseName("chirper_test")
@@ -58,6 +70,8 @@ class TweetRepositoryIntegrationTest {
         registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
         registry.add("spring.flyway.enabled", () -> "true");
+        // Hibernate統計を有効化（N+1クエリ検証用）
+        registry.add("spring.jpa.properties.hibernate.generate_statistics", () -> "true");
     }
 
     private User testUser;
@@ -145,10 +159,46 @@ class TweetRepositoryIntegrationTest {
         List<UserId> userIds = List.of(testUser.getId(), user2.getId());
 
         // When
-        List<Tweet> tweets = tweetRepository.findByUserIdsWithDetails(userIds, 0, 10);
+        List<Tweet> tweets = tweetRepository.findByUserIdsWithDetails(userIds, DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
 
         // Then
         assertEquals(2, tweets.size());
+    }
+
+    @Test
+    @DisplayName("findByUserIdsWithDetails() - N+1クエリ問題が発生しないこと")
+    void findByUserIdsWithDetails_shouldNotCauseNPlusOneQuery() {
+        // Given: 複数のユーザーと複数のツイートを作成
+        User user2 = createAndSaveUser("user2", "user2@example.com");
+        User user3 = createAndSaveUser("user3", "user3@example.com");
+
+        // 各ユーザーが3件ずつツイートを投稿
+        for (int i = 1; i <= 3; i++) {
+            createAndSaveTweet(testUser.getId(), "User1 Tweet " + i);
+            createAndSaveTweet(user2.getId(), "User2 Tweet " + i);
+            createAndSaveTweet(user3.getId(), "User3 Tweet " + i);
+        }
+
+        List<UserId> userIds = List.of(testUser.getId(), user2.getId(), user3.getId());
+
+        // Hibernate統計をリセット
+        resetStatistics();
+
+        // When: タイムライン取得
+        List<Tweet> tweets = tweetRepository.findByUserIdsWithDetails(userIds, DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
+
+        // Then: 結果の検証
+        assertEquals(9, tweets.size(), "3ユーザー × 3ツイート = 9件取得されること");
+
+        // クエリ数を検証（N+1問題が発生していないこと）
+        long queryCount = getQueryCount();
+
+        // 期待値: JOINを使用している場合は少数のクエリで取得可能
+        // - フォロー一覧取得: 不要（テスト内で直接userIdsを指定）
+        // - ツイート一覧取得（JOIN使用）: 1クエリ
+        // 余裕を持って5クエリ以下であればOKとする
+        assertTrue(queryCount <= 5,
+            "N+1クエリ問題が発生していないこと（実行クエリ数: " + queryCount + " <= 5）");
     }
 
     @Test
@@ -163,7 +213,7 @@ class TweetRepositoryIntegrationTest {
         List<UserId> userIds = List.of(testUser.getId());
 
         // When
-        List<Tweet> tweets = tweetRepository.findByUserIdsWithDetails(userIds, 0, 10);
+        List<Tweet> tweets = tweetRepository.findByUserIdsWithDetails(userIds, DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
 
         // Then
         assertEquals(1, tweets.size());
@@ -182,7 +232,7 @@ class TweetRepositoryIntegrationTest {
         List<UserId> userIds = List.of(testUser.getId());
 
         // When
-        List<Tweet> tweets = tweetRepository.findByUserIdsWithDetails(userIds, 0, 10);
+        List<Tweet> tweets = tweetRepository.findByUserIdsWithDetails(userIds, DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
 
         // Then
         assertEquals(3, tweets.size());
@@ -197,16 +247,16 @@ class TweetRepositoryIntegrationTest {
     void findByUserIdsWithDetails_shouldSupportPagination() {
         // Given
         Instant baseTime = Instant.now();
-        for (int i = 1; i <= 25; i++) {
-            createAndSaveTweetWithTimestamp(testUser.getId(), "Tweet " + i, baseTime.minusSeconds(25 - i));
+        for (int i = 1; i <= LARGE_DATASET_SIZE; i++) {
+            createAndSaveTweetWithTimestamp(testUser.getId(), "Tweet " + i, baseTime.minusSeconds(LARGE_DATASET_SIZE - i));
         }
 
         List<UserId> userIds = List.of(testUser.getId());
 
         // When
-        List<Tweet> page1 = tweetRepository.findByUserIdsWithDetails(userIds, 0, 10);
-        List<Tweet> page2 = tweetRepository.findByUserIdsWithDetails(userIds, 1, 10);
-        List<Tweet> page3 = tweetRepository.findByUserIdsWithDetails(userIds, 2, 10);
+        List<Tweet> page1 = tweetRepository.findByUserIdsWithDetails(userIds, DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
+        List<Tweet> page2 = tweetRepository.findByUserIdsWithDetails(userIds, 1, DEFAULT_PAGE_SIZE);
+        List<Tweet> page3 = tweetRepository.findByUserIdsWithDetails(userIds, 2, DEFAULT_PAGE_SIZE);
 
         // Then
         assertEquals(10, page1.size());
@@ -218,7 +268,7 @@ class TweetRepositoryIntegrationTest {
     @DisplayName("findByUserIdsWithDetails() - 空リストの場合は空を返すこと")
     void findByUserIdsWithDetails_shouldReturnEmpty_whenEmptyList() {
         // When
-        List<Tweet> tweets = tweetRepository.findByUserIdsWithDetails(List.of(), 0, 10);
+        List<Tweet> tweets = tweetRepository.findByUserIdsWithDetails(List.of(), DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
 
         // Then
         assertTrue(tweets.isEmpty());
@@ -245,7 +295,7 @@ class TweetRepositoryIntegrationTest {
         createAndSaveTweet(testUser.getId(), "Java programming");
 
         // When
-        List<Tweet> results = tweetRepository.searchByKeyword("Spring", 0, 10);
+        List<Tweet> results = tweetRepository.searchByKeyword("Spring", DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
 
         // Then
         assertEquals(2, results.size());
@@ -263,7 +313,7 @@ class TweetRepositoryIntegrationTest {
         tweetRepository.save(deletedTweet);
 
         // When
-        List<Tweet> results = tweetRepository.searchByKeyword("Spring", 0, 10);
+        List<Tweet> results = tweetRepository.searchByKeyword("Spring", DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
 
         // Then
         assertEquals(1, results.size());
@@ -275,14 +325,14 @@ class TweetRepositoryIntegrationTest {
     void searchByKeyword_shouldSupportPagination() {
         // Given
         Instant baseTime = Instant.now();
-        for (int i = 1; i <= 25; i++) {
-            createAndSaveTweetWithTimestamp(testUser.getId(), "Java programming " + i, baseTime.minusSeconds(25 - i));
+        for (int i = 1; i <= LARGE_DATASET_SIZE; i++) {
+            createAndSaveTweetWithTimestamp(testUser.getId(), "Java programming " + i, baseTime.minusSeconds(LARGE_DATASET_SIZE - i));
         }
 
         // When
-        List<Tweet> page1 = tweetRepository.searchByKeyword("Java", 0, 10);
-        List<Tweet> page2 = tweetRepository.searchByKeyword("Java", 1, 10);
-        List<Tweet> page3 = tweetRepository.searchByKeyword("Java", 2, 10);
+        List<Tweet> page1 = tweetRepository.searchByKeyword("Java", DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
+        List<Tweet> page2 = tweetRepository.searchByKeyword("Java", 1, DEFAULT_PAGE_SIZE);
+        List<Tweet> page3 = tweetRepository.searchByKeyword("Java", 2, DEFAULT_PAGE_SIZE);
 
         // Then
         assertEquals(10, page1.size());
@@ -331,7 +381,7 @@ class TweetRepositoryIntegrationTest {
         createAndSaveTweet(user2.getId(), "User2 tweet");
 
         // When
-        List<Tweet> tweets = tweetRepository.findByUserId(testUser.getId(), 0, 10);
+        List<Tweet> tweets = tweetRepository.findByUserId(testUser.getId(), DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
 
         // Then
         assertEquals(2, tweets.size());
@@ -348,7 +398,7 @@ class TweetRepositoryIntegrationTest {
         tweetRepository.save(deletedTweet);
 
         // When
-        List<Tweet> tweets = tweetRepository.findByUserId(testUser.getId(), 0, 10);
+        List<Tweet> tweets = tweetRepository.findByUserId(testUser.getId(), DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
 
         // Then
         assertEquals(1, tweets.size());
@@ -360,14 +410,14 @@ class TweetRepositoryIntegrationTest {
     void findByUserId_shouldSupportPagination() {
         // Given
         Instant baseTime = Instant.now();
-        for (int i = 1; i <= 25; i++) {
-            createAndSaveTweetWithTimestamp(testUser.getId(), "Tweet " + i, baseTime.minusSeconds(25 - i));
+        for (int i = 1; i <= LARGE_DATASET_SIZE; i++) {
+            createAndSaveTweetWithTimestamp(testUser.getId(), "Tweet " + i, baseTime.minusSeconds(LARGE_DATASET_SIZE - i));
         }
 
         // When
-        List<Tweet> page1 = tweetRepository.findByUserId(testUser.getId(), 0, 10);
-        List<Tweet> page2 = tweetRepository.findByUserId(testUser.getId(), 1, 10);
-        List<Tweet> page3 = tweetRepository.findByUserId(testUser.getId(), 2, 10);
+        List<Tweet> page1 = tweetRepository.findByUserId(testUser.getId(), DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
+        List<Tweet> page2 = tweetRepository.findByUserId(testUser.getId(), 1, DEFAULT_PAGE_SIZE);
+        List<Tweet> page3 = tweetRepository.findByUserId(testUser.getId(), 2, DEFAULT_PAGE_SIZE);
 
         // Then
         assertEquals(10, page1.size());
@@ -404,5 +454,25 @@ class TweetRepositoryIntegrationTest {
             createdAt
         );
         return tweetRepository.save(tweet);
+    }
+
+    /**
+     * ヘルパーメソッド: Hibernate統計をリセット
+     */
+    private void resetStatistics() {
+        SessionFactory sessionFactory = entityManager.getEntityManagerFactory()
+                .unwrap(SessionFactory.class);
+        Statistics stats = sessionFactory.getStatistics();
+        stats.clear();
+    }
+
+    /**
+     * ヘルパーメソッド: 実行されたクエリ数を取得
+     */
+    private long getQueryCount() {
+        SessionFactory sessionFactory = entityManager.getEntityManagerFactory()
+                .unwrap(SessionFactory.class);
+        Statistics stats = sessionFactory.getStatistics();
+        return stats.getPrepareStatementCount();
     }
 }
