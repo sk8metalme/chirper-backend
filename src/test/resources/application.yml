@@ -25,11 +25,10 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
-  # Security Configuration
-  security:
-    jwt:
-      secret: test-secret-key-for-testing-purposes-only-do-not-use-in-production
-      expiration: 3600000
+# JWT Configuration
+jwt:
+  secret: test-secret-key-for-testing-purposes-only-do-not-use-in-production
+  expiration-seconds: 3600
 
 # Logging Configuration for Tests
 logging:

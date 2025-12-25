@@ -5,6 +5,8 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -28,6 +30,8 @@ import static org.hamcrest.Matchers.*;
 @Testcontainers
 @DisplayName("TweetController 統合テスト")
 class TweetControllerIntegrationTest {
+
+    private static final Logger log = LoggerFactory.getLogger(TweetControllerIntegrationTest.class);
 
     @LocalServerPort
     private int port;
@@ -72,8 +76,8 @@ class TweetControllerIntegrationTest {
         if (jwtAuthenticationFilter == null) {
             throw new RuntimeException("JwtAuthenticationFilter is not registered as a Bean!");
         }
-        System.out.println("✓ TweetController Bean registered");
-        System.out.println("✓ JwtAuthenticationFilter Bean registered");
+        log.info("✓ TweetController Bean registered");
+        log.info("✓ JwtAuthenticationFilter Bean registered");
 
         // テスト間のデータクリーンアップ（テスト独立性確保）
         cleanupDatabase();
@@ -142,7 +146,7 @@ class TweetControllerIntegrationTest {
         registerUser("tweetuser", "tweet@example.com", "password123");
         String token = loginAndGetToken("tweetuser", "password123");
 
-        System.out.println("JWT Token: " + token);
+        log.info("JWT Token: {}", token);
 
         String requestBody = """
             {
@@ -162,8 +166,8 @@ class TweetControllerIntegrationTest {
             .extract()
             .response();
 
-        System.out.println("Response Status: " + response.getStatusCode());
-        System.out.println("Response Body: " + response.getBody().asString());
+        log.info("Response Status: {}", response.getStatusCode());
+        log.info("Response Body: {}", response.getBody().asString());
 
         response.then()
             .statusCode(201)
