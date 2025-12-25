@@ -8,8 +8,11 @@ import com.chirper.infrastructure.persistence.entity.RetweetJpaEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -59,5 +62,29 @@ public class RetweetRepositoryImpl implements IRetweetRepository {
     @Transactional
     public void delete(UserId userId, TweetId tweetId) {
         springDataRetweetRepository.deleteByUserIdAndTweetId(userId.value(), tweetId.value());
+    }
+
+    @Override
+    public long countByTweetId(TweetId tweetId) {
+        return springDataRetweetRepository.countByTweetId(tweetId.value());
+    }
+
+    @Override
+    public Map<TweetId, Long> countByTweetIds(List<TweetId> tweetIds) {
+        if (tweetIds == null || tweetIds.isEmpty()) {
+            return new HashMap<>();
+        }
+
+        List<UUID> uuidList = tweetIds.stream()
+            .map(TweetId::value)
+            .collect(Collectors.toList());
+
+        List<Object[]> results = springDataRetweetRepository.countByTweetIds(uuidList);
+
+        return results.stream()
+            .collect(Collectors.toMap(
+                row -> new TweetId((UUID) row[0]),
+                row -> (Long) row[1]
+            ));
     }
 }

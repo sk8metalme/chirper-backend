@@ -1,6 +1,7 @@
 package com.chirper.application.usecase;
 
 import com.chirper.domain.entity.User;
+import com.chirper.domain.exception.EntityNotFoundException;
 import com.chirper.domain.repository.IUserRepository;
 import com.chirper.domain.valueobject.UserId;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,7 @@ public class UpdateProfileUseCase {
      * @param bio 自己紹介（オプション）
      * @param avatarUrl アバターURL（オプション）
      * @return 更新されたUser Entity
-     * @throws IllegalArgumentException ユーザーが存在しない場合
+     * @throws EntityNotFoundException ユーザーが存在しない場合
      * @throws NullPointerException userIdがnullの場合
      */
     public User execute(UserId userId, String displayName, String bio, String avatarUrl) {
@@ -46,7 +47,7 @@ public class UpdateProfileUseCase {
         // 2. ユーザーを検索
         Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isEmpty()) {
-            throw new IllegalArgumentException("User not found: " + userId);
+            throw new EntityNotFoundException("ユーザーが見つかりません: " + userId.value());
         }
 
         User user = userOptional.get();

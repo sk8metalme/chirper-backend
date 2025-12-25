@@ -1,6 +1,7 @@
 package com.chirper.application.usecase;
 
 import com.chirper.domain.entity.Tweet;
+import com.chirper.domain.exception.EntityNotFoundException;
 import com.chirper.domain.repository.ITweetRepository;
 import com.chirper.domain.valueobject.TweetId;
 import com.chirper.domain.valueobject.UserId;
@@ -32,7 +33,7 @@ public class DeleteTweetUseCase {
      * ツイート削除を実行
      * @param tweetId 削除するツイートのID
      * @param userId 削除リクエストを送信したユーザーID
-     * @throws IllegalArgumentException ツイートが存在しない場合
+     * @throws EntityNotFoundException ツイートが存在しない場合
      * @throws SecurityException 投稿者以外が削除しようとした場合
      * @throws IllegalStateException 既に削除済みの場合
      * @throws NullPointerException tweetIdまたはuserIdがnullの場合
@@ -49,7 +50,7 @@ public class DeleteTweetUseCase {
         // 2. ツイートを検索
         Optional<Tweet> tweetOptional = tweetRepository.findById(tweetId);
         if (tweetOptional.isEmpty()) {
-            throw new IllegalArgumentException("Tweet not found: " + tweetId);
+            throw new EntityNotFoundException("ツイートが見つかりません: " + tweetId.value());
         }
 
         Tweet tweet = tweetOptional.get();

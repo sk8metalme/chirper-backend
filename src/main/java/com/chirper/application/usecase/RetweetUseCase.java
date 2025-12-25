@@ -1,6 +1,7 @@
 package com.chirper.application.usecase;
 
 import com.chirper.domain.entity.Retweet;
+import com.chirper.domain.exception.DuplicateEntityException;
 import com.chirper.domain.repository.IRetweetRepository;
 import com.chirper.domain.valueobject.TweetId;
 import com.chirper.domain.valueobject.UserId;
@@ -29,7 +30,7 @@ public class RetweetUseCase {
 
         Optional<Retweet> existingRetweet = retweetRepository.findByUserIdAndTweetId(userId, tweetId);
         if (existingRetweet.isPresent()) {
-            throw new IllegalStateException("Already retweeted this tweet");
+            throw new DuplicateEntityException("既にこのツイートをリツイートしています");
         }
 
         Retweet retweet = Retweet.create(userId, tweetId);

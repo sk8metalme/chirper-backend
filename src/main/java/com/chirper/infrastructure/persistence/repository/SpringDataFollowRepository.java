@@ -39,4 +39,26 @@ public interface SpringDataFollowRepository extends JpaRepository<FollowJpaEntit
      * @param followedUserId フォローされるユーザーのID
      */
     void deleteByFollowerUserIdAndFollowedUserId(UUID followerUserId, UUID followedUserId);
+
+    /**
+     * 指定ユーザーのフォロワー数を取得
+     * @param followedUserId フォローされているユーザーのID
+     * @return フォロワー数
+     */
+    long countByFollowedUserId(UUID followedUserId);
+
+    /**
+     * 指定ユーザーのフォロー数を取得
+     * @param followerUserId フォローしているユーザーのID
+     * @return フォロー数
+     */
+    long countByFollowerUserId(UUID followerUserId);
+
+    /**
+     * フォロー関係が存在するかチェック
+     * @param followerUserId フォローするユーザーのID
+     * @param followedUserId フォローされるユーザーのID
+     * @return フォロー関係が存在する場合true
+     */
+    boolean existsByFollowerUserIdAndFollowedUserId(UUID followerUserId, UUID followedUserId);
 }

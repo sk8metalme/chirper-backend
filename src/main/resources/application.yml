@@ -41,10 +41,9 @@ spring:
 
   # Security Configuration
   security:
-    # JWT secret key (must be set via environment variable in production)
-    jwt:
-      secret: ${JWT_SECRET}
-      expiration: 3600000 # 1 hour in milliseconds
+    user:
+      name: ${SECURITY_USER_NAME:admin}
+      password: ${SECURITY_USER_PASSWORD:admin}
 
 # Server Configuration
 server:
@@ -87,6 +86,11 @@ logging:
     name: logs/chirper-backend.log
     max-size: 10MB
     max-history: 7
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 3600000 # 1 hour in milliseconds
 
 # CORS Configuration (to be implemented in SecurityConfig)
 cors:
