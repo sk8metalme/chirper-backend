@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration;
 public class DomainServiceConfig {
 
     @Bean
-    public AuthenticationService authenticationService(@Value("${spring.security.jwt.secret}") String jwtSecret) {
+    public AuthenticationService authenticationService(@Value("${jwt.secret}") String jwtSecret) {
         return new AuthenticationService(jwtSecret);
     }
 

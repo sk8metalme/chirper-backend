@@ -367,7 +367,7 @@ chirper-backendの実装タスクは、オニオンアーキテクチャの依�
   - RestAssuredでAPIテストを実行
   - _Requirements: 10.7_
 
-- [ ] 18.2 (P) TweetController統合テスト実装
+- [x] 18.2 (P) TweetController統合テスト実装
   - ツイート投稿・取得・削除APIのエンドツーエンドテスト
   - JWT認証フローを含むテスト
   - _Requirements: 10.7_

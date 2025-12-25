@@ -90,7 +90,7 @@ public class JwtUtil {
             .subject(userId.toString())
             .issuedAt(Date.from(now))
             .expiration(Date.from(expiration))
-            .signWith(secretKey)
+            .signWith(secretKey, Jwts.SIG.HS256)
             .compact();
     }
 }
