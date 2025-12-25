@@ -86,10 +86,21 @@ public class User {
      * @param avatarUrl アバターURL（オプション）
      */
     public void updateProfile(String displayName, String bio, String avatarUrl) {
+        updateProfile(displayName, bio, avatarUrl, Instant.now());
+    }
+
+    /**
+     * プロフィール情報を更新（テスト用: 更新日時を指定可能）
+     * @param displayName 表示名（オプション）
+     * @param bio 自己紹介（オプション）
+     * @param avatarUrl アバターURL（オプション）
+     * @param updatedAt 更新日時
+     */
+    public void updateProfile(String displayName, String bio, String avatarUrl, Instant updatedAt) {
         this.displayName = displayName;
         this.bio = bio;
         this.avatarUrl = avatarUrl;
-        this.updatedAt = Instant.now();
+        this.updatedAt = Objects.requireNonNull(updatedAt, "UpdatedAt cannot be null");
     }
 
     /**

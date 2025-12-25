@@ -97,7 +97,7 @@ class AuthControllerTest {
         RegisterRequest request = new RegisterRequest("testuser", "test@example.com", "password123");
 
         when(registerUserUseCase.execute(any(), any(), any()))
-            .thenThrow(new DuplicateEntityException("Username already exists: testuser"));
+            .thenThrow(new DuplicateEntityException("ユーザー名またはメールアドレスが既に存在します"));
 
         // When & Then
         mockMvc.perform(post("/api/v1/auth/register")
@@ -140,7 +140,7 @@ class AuthControllerTest {
         LoginRequest request = new LoginRequest("testuser", "wrongpassword");
 
         when(loginUserUseCase.execute(any(), any()))
-            .thenThrow(new IllegalArgumentException("Authentication failed: Invalid credentials"));
+            .thenThrow(new com.chirper.domain.exception.UnauthorizedAccessException("認証に失敗しました"));
 
         // When & Then
         mockMvc.perform(post("/api/v1/auth/login")

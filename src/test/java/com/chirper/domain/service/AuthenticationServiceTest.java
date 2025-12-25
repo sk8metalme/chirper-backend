@@ -1,5 +1,6 @@
 package com.chirper.domain.service;
 
+import com.chirper.TestConstants;
 import com.chirper.domain.entity.User;
 import com.chirper.domain.valueobject.Email;
 import com.chirper.domain.valueobject.UserId;
@@ -17,11 +18,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class AuthenticationServiceTest {
 
     private AuthenticationService authenticationService;
-    private static final String JWT_SECRET = "test-secret-key-with-at-least-32-bytes-for-hs256-algorithm";
 
     @BeforeEach
     void setUp() {
-        authenticationService = new AuthenticationService(JWT_SECRET);
+        authenticationService = new AuthenticationService(TestConstants.Authentication.JWT_SECRET);
     }
 
     @Nested
@@ -32,7 +32,7 @@ class AuthenticationServiceTest {
         @DisplayName("正常なシークレットキーでインスタンス化できる")
         void shouldCreateInstanceWithValidSecret() {
             // When/Then
-            assertDoesNotThrow(() -> new AuthenticationService(JWT_SECRET));
+            assertDoesNotThrow(() -> new AuthenticationService(TestConstants.Authentication.JWT_SECRET));
         }
 
         @Test
@@ -149,21 +149,22 @@ class AuthenticationServiceTest {
         }
 
         @Test
-        @DisplayName("同じユーザーIDでも異なるトークンが生成される")
-        void shouldGenerateDifferentTokensForSameUserId() {
+        @DisplayName("同じユーザーIDでも異なる時刻で異なるトークンが生成される")
+        void shouldGenerateDifferentTokensForSameUserIdAtDifferentTimes() {
             // Given
             UserId userId = UserId.generate();
-            String token1 = authenticationService.generateJwtToken(userId);
 
-            // Wait to ensure different issued time (JWT uses second precision)
-            try {
-                Thread.sleep(1100);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            // 最初のトークンを生成
+            java.time.Instant firstTime = java.time.Instant.parse("2024-01-01T00:00:00Z");
+            java.time.Clock fixedClock1 = java.time.Clock.fixed(firstTime, java.time.ZoneId.of("UTC"));
+            AuthenticationService service1 = new AuthenticationService(TestConstants.Authentication.JWT_SECRET, fixedClock1);
+            String token1 = service1.generateJwtToken(userId);
 
-            // When
-            String token2 = authenticationService.generateJwtToken(userId);
+            // 2番目のトークンを異なる時刻で生成
+            java.time.Instant secondTime = java.time.Instant.parse("2024-01-01T01:00:00Z");
+            java.time.Clock fixedClock2 = java.time.Clock.fixed(secondTime, java.time.ZoneId.of("UTC"));
+            AuthenticationService service2 = new AuthenticationService(TestConstants.Authentication.JWT_SECRET, fixedClock2);
+            String token2 = service2.generateJwtToken(userId);
 
             // Then
             assertNotEquals(token1, token2);
@@ -224,7 +225,7 @@ class AuthenticationServiceTest {
         void shouldReturnNullForTokenWithDifferentSecret() {
             // Given
             AuthenticationService otherService = new AuthenticationService(
-                "different-secret-key-with-at-least-32-bytes-for-hs256"
+                TestConstants.Authentication.DIFFERENT_JWT_SECRET
             );
             UserId userId = UserId.generate();
             String token = otherService.generateJwtToken(userId);

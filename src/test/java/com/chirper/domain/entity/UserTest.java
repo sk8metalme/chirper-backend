@@ -130,19 +130,14 @@ class UserTest {
             Email email = new Email("test@example.com");
             User user = User.create(username, email, "password123");
             var originalUpdatedAt = user.getUpdatedAt();
-
-            // Wait a little to ensure time difference
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            var newUpdatedAt = originalUpdatedAt.plusSeconds(1);
 
             // When
-            user.updateProfile("New Name", "New Bio", "https://example.com/new.jpg");
+            user.updateProfile("New Name", "New Bio", "https://example.com/new.jpg", newUpdatedAt);
 
             // Then
             assertTrue(user.getUpdatedAt().isAfter(originalUpdatedAt));
+            assertEquals(newUpdatedAt, user.getUpdatedAt());
         }
     }
 

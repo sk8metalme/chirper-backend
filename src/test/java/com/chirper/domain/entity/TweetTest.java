@@ -105,19 +105,14 @@ class TweetTest {
             TweetContent content = new TweetContent("Test tweet");
             Tweet tweet = Tweet.create(authorId, content);
             var originalUpdatedAt = tweet.getUpdatedAt();
-
-            // Wait a little to ensure time difference
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            var newUpdatedAt = originalUpdatedAt.plusSeconds(1);
 
             // When
-            tweet.delete(authorId);
+            tweet.delete(authorId, newUpdatedAt);
 
             // Then
             assertTrue(tweet.getUpdatedAt().isAfter(originalUpdatedAt));
+            assertEquals(newUpdatedAt, tweet.getUpdatedAt());
         }
     }
 
