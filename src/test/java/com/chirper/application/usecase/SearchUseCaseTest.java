@@ -2,10 +2,9 @@ package com.chirper.application.usecase;
 
 import com.chirper.domain.entity.Tweet;
 import com.chirper.domain.entity.User;
+import com.chirper.domain.exception.InvalidOperationException;
 import com.chirper.domain.repository.ITweetRepository;
-import com.chirper.domain.exception.InvalidOperationException;
 import com.chirper.domain.repository.IUserRepository;
-import com.chirper.domain.exception.InvalidOperationException;
 import com.chirper.domain.valueobject.Email;
 import com.chirper.domain.valueobject.TweetContent;
 import com.chirper.domain.valueobject.UserId;

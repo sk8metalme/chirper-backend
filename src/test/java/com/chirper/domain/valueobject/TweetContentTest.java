@@ -70,29 +70,35 @@ class TweetContentTest {
         @Test
         @DisplayName("nullのツイート内容で例外が発生する")
         void shouldThrowExceptionWhenNull() {
-            // When/Then
-            assertThrows(IllegalArgumentException.class,
-                () -> new TweetContent(null),
-                "Tweet content cannot be null or blank");
+            // When
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> new TweetContent(null));
+
+            // Then
+            assertEquals("Tweet content cannot be null or blank", ex.getMessage());
         }
 
         @Test
         @DisplayName("空文字のツイート内容で例外が発生する")
         void shouldThrowExceptionWhenEmpty() {
-            // When/Then
-            assertThrows(IllegalArgumentException.class,
-                () -> new TweetContent(""),
-                "Tweet content cannot be null or blank");
+            // When
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> new TweetContent(""));
+
+            // Then
+            assertEquals("Tweet content cannot be null or blank", ex.getMessage());
         }
 
         @ParameterizedTest
         @DisplayName("空白文字のみのツイート内容で例外が発生する")
         @ValueSource(strings = {" ", "  ", "\t", "\n", "   \t\n   "})
         void shouldThrowExceptionWhenBlank(String blankContent) {
-            // When/Then
-            assertThrows(IllegalArgumentException.class,
-                () -> new TweetContent(blankContent),
-                "Tweet content cannot be null or blank");
+            // When
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> new TweetContent(blankContent));
+
+            // Then
+            assertEquals("Tweet content cannot be null or blank", ex.getMessage());
         }
 
         @Test
@@ -101,17 +107,23 @@ class TweetContentTest {
             // Given
             String tooLongContent = "a".repeat(281);
 
-            // When/Then
-            assertThrows(IllegalArgumentException.class,
+            // When
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> new TweetContent(tooLongContent));
+
+            // Then
+            assertTrue(ex.getMessage().contains("Tweet content must be between"));
         }
 
         @Test
         @DisplayName("トリム後に空文字になる場合は例外が発生する")
         void shouldThrowExceptionWhenTrimmedEmpty() {
-            // When/Then
-            assertThrows(IllegalArgumentException.class,
+            // When
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> new TweetContent("     "));
+
+            // Then
+            assertEquals("Tweet content cannot be null or blank", ex.getMessage());
         }
     }
 
