@@ -87,4 +87,12 @@ public class RetweetRepositoryImpl implements IRetweetRepository {
                 row -> (Long) row[1]
             ));
     }
+
+    @Override
+    public List<TweetId> findTweetIdsByUserId(UserId userId) {
+        return springDataRetweetRepository.findTweetIdsByUserId(userId.value())
+            .stream()
+            .map(TweetId::new)
+            .collect(Collectors.toList());
+    }
 }

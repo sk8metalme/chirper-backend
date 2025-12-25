@@ -61,4 +61,12 @@ public interface SpringDataRetweetRepository extends JpaRepository<RetweetJpaEnt
      */
     @Query("SELECT r.tweetId, COUNT(r) FROM RetweetJpaEntity r WHERE r.tweetId IN :tweetIds GROUP BY r.tweetId")
     List<Object[]> countByTweetIds(@Param("tweetIds") List<UUID> tweetIds);
+
+    /**
+     * 指定ユーザーがリツイートしたツイートIDリストを取得（N+1クエリ回避）
+     * @param userId ユーザーID
+     * @return リツイートしたツイートIDのリスト
+     */
+    @Query("SELECT r.tweetId FROM RetweetJpaEntity r WHERE r.userId = :userId")
+    List<UUID> findTweetIdsByUserId(@Param("userId") UUID userId);
 }
