@@ -378,7 +378,7 @@ chirper-backendの実装タスクは、オニオンアーキテクチャの依�
   - ページネーション処理を検証
   - _Requirements: 3.5, 9.4, 10.7_
 
-- [ ] 18.4 (P) Repository統合テスト実装
+- [x] 18.4 (P) Repository統合テスト実装
   - UserRepositoryImpl、TweetRepositoryImpl等のデータアクセステスト
   - TestContainersでPostgreSQL起動、実際のデータベースでテスト
   - _Requirements: 10.7_
