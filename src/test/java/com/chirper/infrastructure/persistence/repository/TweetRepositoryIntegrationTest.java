@@ -17,6 +17,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -171,13 +172,12 @@ class TweetRepositoryIntegrationTest {
 
     @Test
     @DisplayName("findByUserIdsWithDetails() - 新しい順（created_at DESC）でソートされること")
-    void findByUserIdsWithDetails_shouldSortByCreatedAtDesc() throws InterruptedException {
+    void findByUserIdsWithDetails_shouldSortByCreatedAtDesc() {
         // Given
-        Tweet tweet1 = createAndSaveTweet(testUser.getId(), "First tweet");
-        Thread.sleep(10); // Ensure different timestamps
-        Tweet tweet2 = createAndSaveTweet(testUser.getId(), "Second tweet");
-        Thread.sleep(10);
-        Tweet tweet3 = createAndSaveTweet(testUser.getId(), "Third tweet");
+        Instant baseTime = Instant.now();
+        Tweet tweet1 = createAndSaveTweetWithTimestamp(testUser.getId(), "First tweet", baseTime.minusSeconds(2));
+        Tweet tweet2 = createAndSaveTweetWithTimestamp(testUser.getId(), "Second tweet", baseTime.minusSeconds(1));
+        Tweet tweet3 = createAndSaveTweetWithTimestamp(testUser.getId(), "Third tweet", baseTime);
 
         List<UserId> userIds = List.of(testUser.getId());
 
@@ -194,11 +194,11 @@ class TweetRepositoryIntegrationTest {
 
     @Test
     @DisplayName("findByUserIdsWithDetails() - ページネーション処理が正しく動作すること")
-    void findByUserIdsWithDetails_shouldSupportPagination() throws InterruptedException {
+    void findByUserIdsWithDetails_shouldSupportPagination() {
         // Given
+        Instant baseTime = Instant.now();
         for (int i = 1; i <= 25; i++) {
-            createAndSaveTweet(testUser.getId(), "Tweet " + i);
-            Thread.sleep(5); // Ensure different timestamps
+            createAndSaveTweetWithTimestamp(testUser.getId(), "Tweet " + i, baseTime.minusSeconds(25 - i));
         }
 
         List<UserId> userIds = List.of(testUser.getId());
@@ -272,11 +272,11 @@ class TweetRepositoryIntegrationTest {
 
     @Test
     @DisplayName("searchByKeyword() - ページネーション処理が正しく動作すること")
-    void searchByKeyword_shouldSupportPagination() throws InterruptedException {
+    void searchByKeyword_shouldSupportPagination() {
         // Given
+        Instant baseTime = Instant.now();
         for (int i = 1; i <= 25; i++) {
-            createAndSaveTweet(testUser.getId(), "Java programming " + i);
-            Thread.sleep(5);
+            createAndSaveTweetWithTimestamp(testUser.getId(), "Java programming " + i, baseTime.minusSeconds(25 - i));
         }
 
         // When
@@ -357,11 +357,11 @@ class TweetRepositoryIntegrationTest {
 
     @Test
     @DisplayName("findByUserId() - ページネーション処理が正しく動作すること")
-    void findByUserId_shouldSupportPagination() throws InterruptedException {
+    void findByUserId_shouldSupportPagination() {
         // Given
+        Instant baseTime = Instant.now();
         for (int i = 1; i <= 25; i++) {
-            createAndSaveTweet(testUser.getId(), "Tweet " + i);
-            Thread.sleep(5);
+            createAndSaveTweetWithTimestamp(testUser.getId(), "Tweet " + i, baseTime.minusSeconds(25 - i));
         }
 
         // When
@@ -390,6 +390,19 @@ class TweetRepositoryIntegrationTest {
     private Tweet createAndSaveTweet(UserId userId, String content) {
         TweetContent tweetContent = new TweetContent(content);
         Tweet tweet = Tweet.create(userId, tweetContent);
+        return tweetRepository.save(tweet);
+    }
+
+    private Tweet createAndSaveTweetWithTimestamp(UserId userId, String content, Instant createdAt) {
+        TweetContent tweetContent = new TweetContent(content);
+        Tweet tweet = Tweet.reconstruct(
+            TweetId.generate(),
+            userId,
+            tweetContent,
+            false,
+            createdAt,
+            createdAt
+        );
         return tweetRepository.save(tweet);
     }
 }
