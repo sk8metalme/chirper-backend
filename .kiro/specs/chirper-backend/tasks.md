@@ -348,13 +348,13 @@ chirper-backendの実装タスクは、オニオンアーキテクチャの依�
 ### Phase 6: テストとパフォーマンス検証
 
 - [ ] 17. 単体テスト実装
-- [ ] 17.1 (P) Domain層単体テスト実装
+- [x] 17.1 (P) Domain層単体テスト実装
   - User Entity、Tweet Entityのパスワードハッシュ化、バリデーションをテスト
   - AuthenticationService、TimelineService、FollowServiceのビジネスロジックをテスト
   - JUnit 5 + Mockitoでリポジトリをモック
   - _Requirements: 10.7_
 
-- [ ] 17.2 (P) Application層単体テスト実装
+- [x] 17.2 (P) Application層単体テスト実装
   - RegisterUserUseCase、LoginUserUseCase、CreateTweetUseCase、GetTimelineUseCase等のユースケースをテスト
   - トランザクション制御、エラーハンドリングを検証
   - JUnit 5 + Mockitoでリポジトリとドメインサービスをモック

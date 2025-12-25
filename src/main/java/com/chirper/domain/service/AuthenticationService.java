@@ -9,6 +9,7 @@ import io.jsonwebtoken.security.Keys;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -21,6 +22,7 @@ import java.util.Date;
 public class AuthenticationService {
 
     private final SecretKey jwtSecretKey;
+    private final Clock clock;
     private static final long JWT_EXPIRATION_HOURS = 1;
 
     /**
@@ -28,6 +30,15 @@ public class AuthenticationService {
      * @param jwtSecret JWTシークレットキー（環境変数から取得）
      */
     public AuthenticationService(String jwtSecret) {
+        this(jwtSecret, Clock.systemUTC());
+    }
+
+    /**
+     * コンストラクタ（テスト用: Clockを指定可能）
+     * @param jwtSecret JWTシークレットキー（環境変数から取得）
+     * @param clock 時刻取得用Clock
+     */
+    public AuthenticationService(String jwtSecret, Clock clock) {
         if (jwtSecret == null || jwtSecret.isBlank()) {
             throw new IllegalArgumentException("JWT secret key cannot be null or blank");
         }
@@ -36,6 +47,7 @@ public class AuthenticationService {
             throw new IllegalArgumentException("JWT secret key must be at least 32 bytes");
         }
         this.jwtSecretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        this.clock = clock != null ? clock : Clock.systemUTC();
     }
 
     /**
@@ -57,7 +69,7 @@ public class AuthenticationService {
      * @return JWT文字列
      */
     public String generateJwtToken(UserId userId) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         Instant expirationTime = now.plus(JWT_EXPIRATION_HOURS, ChronoUnit.HOURS);
 
         return Jwts.builder()

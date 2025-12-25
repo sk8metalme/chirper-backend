@@ -1,6 +1,7 @@
 package com.chirper.application.usecase;
 
 import com.chirper.domain.entity.User;
+import com.chirper.domain.exception.UnauthorizedAccessException;
 import com.chirper.domain.repository.IUserRepository;
 import com.chirper.domain.service.AuthenticationService;
 import com.chirper.domain.valueobject.Email;
@@ -89,8 +90,8 @@ class LoginUserUseCaseTest {
 
         // Act & Assert
         assertThatThrownBy(() -> loginUserUseCase.execute(username, password))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Authentication failed");
+            .isInstanceOf(UnauthorizedAccessException.class)
+            .hasMessageContaining("認証に失敗しました");
 
         // リポジトリのメソッドが正しく呼ばれたことを確認
         verify(userRepository, times(1)).findByUsername(any(Username.class));
@@ -119,8 +120,8 @@ class LoginUserUseCaseTest {
 
         // Act & Assert
         assertThatThrownBy(() -> loginUserUseCase.execute(username, wrongPassword))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Authentication failed");
+            .isInstanceOf(UnauthorizedAccessException.class)
+            .hasMessageContaining("認証に失敗しました");
 
         // リポジトリとサービスのメソッドが正しく呼ばれたことを確認
         verify(userRepository, times(1)).findByUsername(any(Username.class));
@@ -137,7 +138,8 @@ class LoginUserUseCaseTest {
 
         // Act & Assert
         assertThatThrownBy(() -> loginUserUseCase.execute(username, password))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Username cannot be null or blank");
 
         // リポジトリのメソッドが呼ばれないことを確認
         verify(userRepository, never()).findByUsername(any(Username.class));
@@ -162,7 +164,7 @@ class LoginUserUseCaseTest {
 
         // Act & Assert
         assertThatThrownBy(() -> loginUserUseCase.execute(username, password))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(UnauthorizedAccessException.class);
 
         // リポジトリのメソッドが呼ばれたことを確認
         verify(userRepository, times(1)).findByUsername(any(Username.class));

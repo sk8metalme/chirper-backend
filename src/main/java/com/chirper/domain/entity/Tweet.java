@@ -70,6 +70,18 @@ public class Tweet {
      * @throws SecurityException 投稿者以外が削除しようとした場合
      */
     public void delete(UserId requestingUserId) {
+        delete(requestingUserId, Instant.now());
+    }
+
+    /**
+     * ツイートを論理削除（テスト用: 更新日時を指定可能）
+     * ビジネスルール: 投稿者本人のみが削除可能
+     * @param requestingUserId 削除リクエストを送信したユーザーID
+     * @param updatedAt 更新日時
+     * @throws IllegalStateException 既に削除済みの場合
+     * @throws SecurityException 投稿者以外が削除しようとした場合
+     */
+    public void delete(UserId requestingUserId, Instant updatedAt) {
         if (this.isDeleted) {
             throw new IllegalStateException("Tweet is already deleted");
         }
@@ -79,7 +91,7 @@ public class Tweet {
         }
 
         this.isDeleted = true;
-        this.updatedAt = Instant.now();
+        this.updatedAt = Objects.requireNonNull(updatedAt, "UpdatedAt cannot be null");
     }
 
     /**

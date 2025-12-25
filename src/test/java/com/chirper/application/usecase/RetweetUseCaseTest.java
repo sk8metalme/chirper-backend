@@ -1,6 +1,7 @@
 package com.chirper.application.usecase;
 
 import com.chirper.domain.entity.Retweet;
+import com.chirper.domain.exception.DuplicateEntityException;
 import com.chirper.domain.repository.IRetweetRepository;
 import com.chirper.domain.valueobject.TweetId;
 import com.chirper.domain.valueobject.UserId;
@@ -64,8 +65,8 @@ class RetweetUseCaseTest {
 
         // Act & Assert
         assertThatThrownBy(() -> retweetUseCase.execute(userId, tweetId))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("Already retweeted this tweet");
+            .isInstanceOf(DuplicateEntityException.class)
+            .hasMessageContaining("既にこのツイートをリツイートしています");
 
         verify(retweetRepository, times(1)).findByUserIdAndTweetId(userId, tweetId);
         verify(retweetRepository, never()).save(any(Retweet.class));

@@ -2,9 +2,12 @@ package com.chirper.presentation.controller;
 
 import com.chirper.application.usecase.GetTimelineUseCase;
 import com.chirper.domain.entity.Tweet;
+import com.chirper.domain.entity.User;
+import com.chirper.domain.valueobject.Email;
 import com.chirper.domain.valueobject.TweetContent;
 import com.chirper.domain.valueobject.TweetId;
 import com.chirper.domain.valueobject.UserId;
+import com.chirper.domain.valueobject.Username;
 import com.chirper.infrastructure.security.JwtUtil;
 import com.chirper.presentation.exception.GlobalExceptionHandler;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +57,7 @@ class TimelineControllerTest {
 
     private UserId testUserId;
     private UserId followedUserId;
+    private User testUser;
     private Tweet testTweet1;
     private Tweet testTweet2;
 
@@ -61,6 +65,9 @@ class TimelineControllerTest {
     void setUp() {
         testUserId = UserId.of(UUID.randomUUID().toString());
         followedUserId = UserId.of(UUID.randomUUID().toString());
+
+        // テストユーザー作成
+        testUser = User.create(new Username("testuser"), new Email("test@example.com"), "password");
 
         // テストツイート作成
         testTweet1 = Tweet.create(followedUserId, new TweetContent("フォローユーザーのツイート1"));
@@ -87,9 +94,9 @@ class TimelineControllerTest {
     @WithMockUser(username = "550e8400-e29b-41d4-a716-446655440000")
     void getTimeline_success() throws Exception {
         // Arrange
-        var tweetWithStatus1 = new GetTimelineUseCase.TweetWithStatus(testTweet1, false, false);
-        var tweetWithStatus2 = new GetTimelineUseCase.TweetWithStatus(testTweet2, true, false);
-        var timelineResult = new GetTimelineUseCase.TimelineResult(List.of(tweetWithStatus1, tweetWithStatus2));
+        var tweetWithDetails1 = new GetTimelineUseCase.TweetWithDetails(testTweet1, testUser, 10L, 5L, false, false);
+        var tweetWithDetails2 = new GetTimelineUseCase.TweetWithDetails(testTweet2, testUser, 20L, 3L, true, false);
+        var timelineResult = new GetTimelineUseCase.TimelineResult(List.of(tweetWithDetails1, tweetWithDetails2));
 
         when(getTimelineUseCase.execute(any(UserId.class), eq(0), eq(20)))
             .thenReturn(timelineResult);
@@ -138,8 +145,8 @@ class TimelineControllerTest {
     @WithMockUser(username = "550e8400-e29b-41d4-a716-446655440000")
     void getTimeline_customPagination() throws Exception {
         // Arrange
-        var tweetWithStatus = new GetTimelineUseCase.TweetWithStatus(testTweet1, false, false);
-        var timelineResult = new GetTimelineUseCase.TimelineResult(List.of(tweetWithStatus));
+        var tweetWithDetails = new GetTimelineUseCase.TweetWithDetails(testTweet1, testUser, 10L, 5L, false, false);
+        var timelineResult = new GetTimelineUseCase.TimelineResult(List.of(tweetWithDetails));
         when(getTimelineUseCase.execute(any(UserId.class), eq(1), eq(10)))
             .thenReturn(timelineResult);
 

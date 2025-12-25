@@ -1,6 +1,7 @@
 package com.chirper.application.usecase;
 
 import com.chirper.domain.entity.Tweet;
+import com.chirper.domain.exception.EntityNotFoundException;
 import com.chirper.domain.repository.ITweetRepository;
 import com.chirper.domain.valueobject.TweetContent;
 import com.chirper.domain.valueobject.TweetId;
@@ -73,8 +74,8 @@ class DeleteTweetUseCaseTest {
 
         // Act & Assert
         assertThatThrownBy(() -> deleteTweetUseCase.execute(tweetId, userId))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Tweet not found");
+            .isInstanceOf(EntityNotFoundException.class)
+            .hasMessageContaining("ツイートが見つかりません");
 
         // リポジトリのメソッドが正しく呼ばれたことを確認
         verify(tweetRepository, times(1)).findById(tweetId);

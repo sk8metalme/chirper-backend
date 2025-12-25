@@ -1,6 +1,7 @@
 package com.chirper.application.usecase;
 
 import com.chirper.domain.entity.Like;
+import com.chirper.domain.exception.DuplicateEntityException;
 import com.chirper.domain.repository.ILikeRepository;
 import com.chirper.domain.valueobject.TweetId;
 import com.chirper.domain.valueobject.UserId;
@@ -64,8 +65,8 @@ class LikeTweetUseCaseTest {
 
         // Act & Assert
         assertThatThrownBy(() -> likeTweetUseCase.execute(userId, tweetId))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("Already liked this tweet");
+            .isInstanceOf(DuplicateEntityException.class)
+            .hasMessageContaining("既にこのツイートにいいねしています");
 
         verify(likeRepository, times(1)).findByUserIdAndTweetId(userId, tweetId);
         verify(likeRepository, never()).save(any(Like.class));

@@ -169,7 +169,7 @@ class SocialControllerTest {
     @WithMockUser(username = "550e8400-e29b-41d4-a716-446655440000")
     void likeTweet_alreadyLiked() throws Exception {
         // Arrange
-        doThrow(new IllegalStateException("Already liked this tweet"))
+        doThrow(new com.chirper.domain.exception.DuplicateEntityException("既にいいね済みです"))
             .when(likeTweetUseCase).execute(any(UserId.class), eq(testTweetId));
 
         // Act & Assert
@@ -216,7 +216,7 @@ class SocialControllerTest {
     @WithMockUser(username = "550e8400-e29b-41d4-a716-446655440000")
     void retweetTweet_alreadyRetweeted() throws Exception {
         // Arrange
-        doThrow(new IllegalStateException("Already retweeted this tweet"))
+        doThrow(new com.chirper.domain.exception.DuplicateEntityException("既にリツイート済みです"))
             .when(retweetUseCase).execute(any(UserId.class), eq(testTweetId));
 
         // Act & Assert
