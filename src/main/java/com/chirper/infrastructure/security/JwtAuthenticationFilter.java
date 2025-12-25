@@ -4,6 +4,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -17,6 +19,7 @@ import java.util.Optional;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final JwtUtil jwtUtil;
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil) {
@@ -39,6 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             // 最適化: 1回のパースで検証とユーザーID抽出を行う
             Optional<String> userIdOpt = jwtUtil.validateAndExtractUserId(jwt);
+
             if (userIdOpt.isPresent()) {
                 String userId = userIdOpt.get();
 
@@ -53,7 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             // スタックトレースを記録せず、エラーメッセージのみを記録
-            logger.warn("JWT authentication failed: " + e.getMessage());
+            log.warn("JWT authentication failed: {}", e.getMessage());
             // SecurityContextにAuthenticationを設定しないことで、Spring Securityが自動的に401を返す
         }
 
