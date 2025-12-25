@@ -73,11 +73,15 @@ public class GetTimelineUseCase {
         Map<TweetId, Long> likesCountMap = likeRepository.countByTweetIds(tweetIds);
         Map<TweetId, Long> retweetsCountMap = retweetRepository.countByTweetIds(tweetIds);
 
+        // 現在のユーザーがいいね/リツイートしたツイートをバッチ取得
+        List<TweetId> likedTweetIds = likeRepository.findTweetIdsByUserId(currentUserId);
+        List<TweetId> retweetedTweetIds = retweetRepository.findTweetIdsByUserId(currentUserId);
+
         // 各ツイートの詳細情報を構築
         List<TweetWithDetails> tweetsWithDetails = tweets.stream()
             .map(tweet -> {
-                boolean liked = likeRepository.findByUserIdAndTweetId(currentUserId, tweet.getId()).isPresent();
-                boolean retweeted = retweetRepository.findByUserIdAndTweetId(currentUserId, tweet.getId()).isPresent();
+                boolean liked = likedTweetIds.contains(tweet.getId());
+                boolean retweeted = retweetedTweetIds.contains(tweet.getId());
                 User author = authorMap.get(tweet.getUserId());
                 long likesCount = likesCountMap.getOrDefault(tweet.getId(), 0L);
                 long retweetsCount = retweetsCountMap.getOrDefault(tweet.getId(), 0L);

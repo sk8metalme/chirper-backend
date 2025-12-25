@@ -87,4 +87,12 @@ public class LikeRepositoryImpl implements ILikeRepository {
                 row -> (Long) row[1]
             ));
     }
+
+    @Override
+    public List<TweetId> findTweetIdsByUserId(UserId userId) {
+        return springDataLikeRepository.findTweetIdsByUserId(userId.value())
+            .stream()
+            .map(TweetId::new)
+            .collect(Collectors.toList());
+    }
 }

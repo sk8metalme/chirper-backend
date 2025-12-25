@@ -64,4 +64,11 @@ public interface IRetweetRepository {
      * @return ツイートIDとリツイート数のマップ
      */
     Map<TweetId, Long> countByTweetIds(List<TweetId> tweetIds);
+
+    /**
+     * 指定ユーザーがリツイートしたツイートIDリストを取得（N+1クエリ回避）
+     * @param userId ユーザーID
+     * @return リツイートしたツイートIDのリスト
+     */
+    List<TweetId> findTweetIdsByUserId(UserId userId);
 }

@@ -64,4 +64,11 @@ public interface ILikeRepository {
      * @return ツイートIDといいね数のマップ
      */
     Map<TweetId, Long> countByTweetIds(List<TweetId> tweetIds);
+
+    /**
+     * 指定ユーザーがいいねしたツイートIDリストを取得（N+1クエリ回避）
+     * @param userId ユーザーID
+     * @return いいねしたツイートIDのリスト
+     */
+    List<TweetId> findTweetIdsByUserId(UserId userId);
 }

@@ -63,4 +63,12 @@ public interface SpringDataLikeRepository extends JpaRepository<LikeJpaEntity, U
      */
     @Query("SELECT l.tweetId, COUNT(l) FROM LikeJpaEntity l WHERE l.tweetId IN :tweetIds GROUP BY l.tweetId")
     List<Object[]> countByTweetIds(@Param("tweetIds") List<UUID> tweetIds);
+
+    /**
+     * 指定ユーザーがいいねしたツイートIDリストを取得（N+1クエリ回避）
+     * @param userId ユーザーID
+     * @return いいねしたツイートIDのリスト
+     */
+    @Query("SELECT l.tweetId FROM LikeJpaEntity l WHERE l.userId = :userId")
+    List<UUID> findTweetIdsByUserId(@Param("userId") UUID userId);
 }
