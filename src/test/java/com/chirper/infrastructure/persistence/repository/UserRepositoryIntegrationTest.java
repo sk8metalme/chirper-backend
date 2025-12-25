@@ -18,6 +18,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,8 +51,8 @@ class UserRepositoryIntegrationTest {
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine")
             .withDatabaseName("chirper_test")
-            .withUsername("test_user")
-            .withPassword("test_password");
+            .withUsername("test_user");
+            // TestContainersはデフォルトでランダムパスワードを自動生成
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -70,21 +71,34 @@ class UserRepositoryIntegrationTest {
     }
 
     @Test
-    @DisplayName("save() - ユーザーを保存できること")
-    void save_shouldPersistUser() {
+    @DisplayName("save() - ユーザーを保存できること（パスワードはハッシュ化される）")
+    void save_shouldPersistUser_withHashedPassword() {
         // Given
+        String rawPassword = "password123";
         Username username = new Username("testuser");
         Email email = new Email("test@example.com");
-        User user = User.create(username, email, "password123");
+        User user = User.create(username, email, rawPassword);
 
         // When
         User savedUser = userRepository.save(user);
 
         // Then
-        assertNotNull(savedUser.getId());
-        assertEquals(username, savedUser.getUsername());
-        assertEquals(email, savedUser.getEmail());
-        assertNotNull(savedUser.getCreatedAt());
+        assertAll("保存されたユーザーの検証",
+            () -> assertNotNull(savedUser.getId(), "IDが生成されていること"),
+            () -> assertNotNull(savedUser.getId().value(), "UUID値が存在すること"),
+            () -> assertEquals(username, savedUser.getUsername(), "ユーザー名が一致すること"),
+            () -> assertEquals(email, savedUser.getEmail(), "メールアドレスが一致すること"),
+            () -> assertNotNull(savedUser.getCreatedAt(), "作成日時が設定されていること"),
+            () -> assertTrue(
+                savedUser.getCreatedAt().isBefore(Instant.now().plusSeconds(1)),
+                "作成日時が現在時刻付近であること"
+            ),
+            () -> assertNotNull(savedUser.getPassword(), "パスワードが設定されていること"),
+            () -> assertNotEquals(rawPassword, savedUser.getPassword().hashedValue(),
+                "パスワードは平文で保存されないこと"),
+            () -> assertTrue(savedUser.getPassword().matches(rawPassword),
+                "ハッシュ化されたパスワードが元のパスワードと一致すること")
+        );
     }
 
     @Test

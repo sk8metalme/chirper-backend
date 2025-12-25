@@ -59,8 +59,8 @@ class TweetRepositoryIntegrationTest {
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine")
             .withDatabaseName("chirper_test")
-            .withUsername("test_user")
-            .withPassword("test_password");
+            .withUsername("test_user");
+            // TestContainersはデフォルトでランダムパスワードを自動生成
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -96,11 +96,18 @@ class TweetRepositoryIntegrationTest {
         Tweet savedTweet = tweetRepository.save(tweet);
 
         // Then
-        assertNotNull(savedTweet.getId());
-        assertEquals(content.value(), savedTweet.getContent().value());
-        assertEquals(testUser.getId(), savedTweet.getUserId());
-        assertFalse(savedTweet.isDeleted());
-        assertNotNull(savedTweet.getCreatedAt());
+        assertAll("保存されたツイートの検証",
+            () -> assertNotNull(savedTweet.getId(), "IDが生成されていること"),
+            () -> assertNotNull(savedTweet.getId().value(), "UUID値が存在すること"),
+            () -> assertEquals(content.value(), savedTweet.getContent().value(), "コンテンツが一致すること"),
+            () -> assertEquals(testUser.getId(), savedTweet.getUserId(), "ユーザーIDが一致すること"),
+            () -> assertFalse(savedTweet.isDeleted(), "削除フラグがfalseであること"),
+            () -> assertNotNull(savedTweet.getCreatedAt(), "作成日時が設定されていること"),
+            () -> assertTrue(
+                savedTweet.getCreatedAt().isBefore(Instant.now().plusSeconds(1)),
+                "作成日時が現在時刻付近であること"
+            )
+        );
     }
 
     @Test
@@ -199,6 +206,41 @@ class TweetRepositoryIntegrationTest {
         // 余裕を持って5クエリ以下であればOKとする
         assertTrue(queryCount <= 5,
             "N+1クエリ問題が発生していないこと（実行クエリ数: " + queryCount + " <= 5）");
+    }
+
+    @Test
+    @DisplayName("findByUserIdsWithDetails() - パフォーマンステスト（大量データ）")
+    void findByUserIdsWithDetails_performanceTest() {
+        // Given: 1000件のツイートを作成
+        Instant baseTime = Instant.now();
+        int tweetCount = 1000;
+        for (int i = 0; i < tweetCount; i++) {
+            createAndSaveTweetWithTimestamp(
+                testUser.getId(),
+                "Performance test tweet " + i,
+                baseTime.minusSeconds(tweetCount - i)
+            );
+        }
+
+        List<UserId> userIds = List.of(testUser.getId());
+
+        // When: 実行時間を測定
+        long startTime = System.currentTimeMillis();
+        List<Tweet> tweets = tweetRepository.findByUserIdsWithDetails(
+            userIds,
+            DEFAULT_PAGE_NUMBER,
+            100
+        );
+        long executionTime = System.currentTimeMillis() - startTime;
+
+        // Then: 性能要件を満たすこと
+        assertAll("パフォーマンス検証",
+            () -> assertEquals(100, tweets.size(), "100件取得されること"),
+            () -> assertTrue(executionTime < 2000,
+                "クエリ実行時間が2秒以内であること（実際: " + executionTime + "ms）"),
+            () -> assertTrue(tweets.get(0).getCreatedAt().isAfter(tweets.get(99).getCreatedAt()),
+                "新しい順にソートされていること")
+        );
     }
 
     @Test
