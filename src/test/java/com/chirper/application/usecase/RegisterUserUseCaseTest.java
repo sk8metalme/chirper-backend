@@ -1,6 +1,7 @@
 package com.chirper.application.usecase;
 
 import com.chirper.domain.entity.User;
+import com.chirper.domain.exception.DuplicateEntityException;
 import com.chirper.domain.repository.IUserRepository;
 import com.chirper.domain.valueobject.Email;
 import com.chirper.domain.valueobject.Username;
@@ -91,8 +92,8 @@ class RegisterUserUseCaseTest {
 
         // Act & Assert
         assertThatThrownBy(() -> registerUserUseCase.execute(username, email, password))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Username already exists");
+            .isInstanceOf(DuplicateEntityException.class)
+            .hasMessageContaining("ユーザー名は既に使用されています");
 
         // リポジトリのメソッドが正しく呼ばれたことを確認
         verify(userRepository, times(1)).findByUsername(any(Username.class));
@@ -123,8 +124,8 @@ class RegisterUserUseCaseTest {
 
         // Act & Assert
         assertThatThrownBy(() -> registerUserUseCase.execute(username, email, password))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Email already exists");
+            .isInstanceOf(DuplicateEntityException.class)
+            .hasMessageContaining("メールアドレスは既に使用されています");
 
         // リポジトリのメソッドが正しく呼ばれたことを確認
         verify(userRepository, times(1)).findByUsername(any(Username.class));

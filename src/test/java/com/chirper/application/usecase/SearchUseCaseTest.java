@@ -3,7 +3,9 @@ package com.chirper.application.usecase;
 import com.chirper.domain.entity.Tweet;
 import com.chirper.domain.entity.User;
 import com.chirper.domain.repository.ITweetRepository;
+import com.chirper.domain.exception.InvalidOperationException;
 import com.chirper.domain.repository.IUserRepository;
+import com.chirper.domain.exception.InvalidOperationException;
 import com.chirper.domain.valueobject.Email;
 import com.chirper.domain.valueobject.TweetContent;
 import com.chirper.domain.valueobject.UserId;
@@ -61,8 +63,8 @@ class SearchUseCaseTest {
 
         // Act & Assert
         assertThatThrownBy(() -> searchUseCase.execute(keyword, 0, 20))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Search keyword must be at least 2 characters");
+            .isInstanceOf(InvalidOperationException.class)
+            .hasMessageContaining("検索キーワードは2文字以上で入力してください");
     }
 
     @Test
@@ -73,6 +75,6 @@ class SearchUseCaseTest {
 
         // Act & Assert
         assertThatThrownBy(() -> searchUseCase.execute(keyword, 0, 20))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(InvalidOperationException.class);
     }
 }

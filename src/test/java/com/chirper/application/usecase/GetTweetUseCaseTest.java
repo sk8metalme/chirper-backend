@@ -55,8 +55,8 @@ class GetTweetUseCaseTest {
     void getTweet_success_noLikesOrRetweets() {
         // Arrange
         when(tweetRepository.findById(testTweetId)).thenReturn(Optional.of(testTweet));
-        when(likeRepository.findByTweetId(testTweetId)).thenReturn(List.of());
-        when(retweetRepository.findByTweetId(testTweetId)).thenReturn(List.of());
+        when(likeRepository.countByTweetId(testTweetId)).thenReturn(0L);
+        when(retweetRepository.countByTweetId(testTweetId)).thenReturn(0L);
 
         // Act
         GetTweetUseCase.TweetResult result = getTweetUseCase.execute(testTweetId);
@@ -68,8 +68,8 @@ class GetTweetUseCaseTest {
         assertThat(result.retweetsCount()).isEqualTo(0);
 
         verify(tweetRepository, times(1)).findById(testTweetId);
-        verify(likeRepository, times(1)).findByTweetId(testTweetId);
-        verify(retweetRepository, times(1)).findByTweetId(testTweetId);
+        verify(likeRepository, times(1)).countByTweetId(testTweetId);
+        verify(retweetRepository, times(1)).countByTweetId(testTweetId);
     }
 
     @Test
@@ -77,20 +77,8 @@ class GetTweetUseCaseTest {
     void getTweet_success_withLikesAndRetweets() {
         // Arrange
         when(tweetRepository.findById(testTweetId)).thenReturn(Optional.of(testTweet));
-        // サイズ5のリストを返す（実際のLikeエンティティは不要）
-        when(likeRepository.findByTweetId(testTweetId)).thenReturn(List.of(
-            mock(com.chirper.domain.entity.Like.class),
-            mock(com.chirper.domain.entity.Like.class),
-            mock(com.chirper.domain.entity.Like.class),
-            mock(com.chirper.domain.entity.Like.class),
-            mock(com.chirper.domain.entity.Like.class)
-        ));
-        // サイズ3のリストを返す
-        when(retweetRepository.findByTweetId(testTweetId)).thenReturn(List.of(
-            mock(com.chirper.domain.entity.Retweet.class),
-            mock(com.chirper.domain.entity.Retweet.class),
-            mock(com.chirper.domain.entity.Retweet.class)
-        ));
+        when(likeRepository.countByTweetId(testTweetId)).thenReturn(5L);
+        when(retweetRepository.countByTweetId(testTweetId)).thenReturn(3L);
 
         // Act
         GetTweetUseCase.TweetResult result = getTweetUseCase.execute(testTweetId);
