@@ -361,7 +361,7 @@ chirper-backendの実装タスクは、オニオンアーキテクチャの依�
   - _Requirements: 10.7_
 
 - [ ] 18. 統合テスト実装
-- [ ] 18.1 AuthController統合テスト実装
+- [x] 18.1 AuthController統合テスト実装
   - ユーザー登録・ログインAPIのエンドツーエンドテスト
   - TestContainersでPostgreSQL起動、実際のデータベースでテスト
   - RestAssuredでAPIテストを実行
