@@ -1,6 +1,7 @@
 package com.chirper.application.usecase;
 
 import com.chirper.domain.entity.Like;
+import com.chirper.domain.exception.DuplicateEntityException;
 import com.chirper.domain.repository.ILikeRepository;
 import com.chirper.domain.valueobject.TweetId;
 import com.chirper.domain.valueobject.UserId;
@@ -29,7 +30,7 @@ public class LikeTweetUseCase {
 
         Optional<Like> existingLike = likeRepository.findByUserIdAndTweetId(userId, tweetId);
         if (existingLike.isPresent()) {
-            throw new IllegalStateException("Already liked this tweet");
+            throw new DuplicateEntityException("既にこのツイートにいいねしています");
         }
 
         Like like = Like.create(userId, tweetId);

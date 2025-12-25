@@ -2,6 +2,8 @@ package com.chirper.infrastructure.persistence.repository;
 
 import com.chirper.infrastructure.persistence.entity.RetweetJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -43,4 +45,20 @@ public interface SpringDataRetweetRepository extends JpaRepository<RetweetJpaEnt
      * @param tweetId ツイートID
      */
     void deleteByUserIdAndTweetId(UUID userId, UUID tweetId);
+
+    /**
+     * 指定ツイートのリツイート数を取得
+     * @param tweetId ツイートID
+     * @return リツイート数
+     */
+    long countByTweetId(UUID tweetId);
+
+    /**
+     * 複数ツイートのリツイート数をバッチ取得（N+1クエリ回避）
+     * GROUP BYを使用して一括取得
+     * @param tweetIds ツイートIDのリスト
+     * @return ツイートIDとリツイート数のリスト（Object[]形式）
+     */
+    @Query("SELECT r.tweetId, COUNT(r) FROM RetweetJpaEntity r WHERE r.tweetId IN :tweetIds GROUP BY r.tweetId")
+    List<Object[]> countByTweetIds(@Param("tweetIds") List<UUID> tweetIds);
 }

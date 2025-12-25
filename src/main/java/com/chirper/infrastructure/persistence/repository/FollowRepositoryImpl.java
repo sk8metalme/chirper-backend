@@ -64,4 +64,20 @@ public class FollowRepositoryImpl implements IFollowRepository {
         springDataFollowRepository
             .deleteByFollowerUserIdAndFollowedUserId(followerUserId.value(), followedUserId.value());
     }
+
+    @Override
+    public long countFollowers(UserId userId) {
+        return springDataFollowRepository.countByFollowedUserId(userId.value());
+    }
+
+    @Override
+    public long countFollowing(UserId userId) {
+        return springDataFollowRepository.countByFollowerUserId(userId.value());
+    }
+
+    @Override
+    public boolean existsByFollowerAndFollowed(UserId followerUserId, UserId followedUserId) {
+        return springDataFollowRepository
+            .existsByFollowerUserIdAndFollowedUserId(followerUserId.value(), followedUserId.value());
+    }
 }

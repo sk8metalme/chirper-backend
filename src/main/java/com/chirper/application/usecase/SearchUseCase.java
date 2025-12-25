@@ -2,6 +2,7 @@ package com.chirper.application.usecase;
 
 import com.chirper.domain.entity.Tweet;
 import com.chirper.domain.entity.User;
+import com.chirper.domain.exception.InvalidOperationException;
 import com.chirper.domain.repository.ITweetRepository;
 import com.chirper.domain.repository.IUserRepository;
 import org.springframework.stereotype.Service;
@@ -39,24 +40,23 @@ public class SearchUseCase {
      * @param page ページ番号（0始まり）
      * @param size ページサイズ
      * @return 検索結果（ユーザーとツイートのリスト）
-     * @throws IllegalArgumentException キーワードがnull、空、または2文字未満の場合
+     * @throws InvalidOperationException キーワードがnull、空、または2文字未満の場合
      */
     public SearchResult execute(String keyword, int page, int size) {
         if (keyword == null || keyword.trim().isEmpty()) {
-            throw new IllegalArgumentException("Search keyword cannot be null or empty");
+            throw new InvalidOperationException("検索キーワードを入力してください");
         }
 
         String trimmedKeyword = keyword.trim();
         if (trimmedKeyword.length() < 2) {
-            throw new IllegalArgumentException("Search keyword must be at least 2 characters");
+            throw new InvalidOperationException("検索キーワードは2文字以上で入力してください");
         }
 
-        // TODO: Phase 5で実装予定
-        // IUserRepository.searchByKeyword(String keyword, int page, int size)
-        // ITweetRepository.searchByKeyword(String keyword, int page, int size)
-        // の実装が必要
+        // 実際の検索実行
+        List<User> users = userRepository.searchByKeyword(trimmedKeyword, page, size);
+        List<Tweet> tweets = tweetRepository.searchByKeyword(trimmedKeyword, page, size);
 
-        return new SearchResult(List.of(), List.of());
+        return new SearchResult(users, tweets);
     }
 
     public record SearchResult(List<User> users, List<Tweet> tweets) {}

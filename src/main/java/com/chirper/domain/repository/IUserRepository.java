@@ -5,6 +5,8 @@ import com.chirper.domain.valueobject.Email;
 import com.chirper.domain.valueobject.UserId;
 import com.chirper.domain.valueobject.Username;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -47,4 +49,27 @@ public interface IUserRepository {
      * @param userId 削除するユーザーのID
      */
     void delete(UserId userId);
+
+    /**
+     * キーワードでユーザーを検索（username, displayNameで部分一致）
+     * @param keyword 検索キーワード
+     * @param page ページ番号（0始まり）
+     * @param size ページサイズ
+     * @return ユーザーのリスト
+     */
+    java.util.List<User> searchByKeyword(String keyword, int page, int size);
+
+    /**
+     * キーワード検索のヒット件数を取得
+     * @param keyword 検索キーワード
+     * @return 件数
+     */
+    long countByKeyword(String keyword);
+
+    /**
+     * 複数のユーザーIDでユーザーをバッチ取得（N+1クエリ回避）
+     * @param userIds ユーザーIDのリスト
+     * @return ユーザーIDとUserエンティティのマップ
+     */
+    Map<UserId, User> findByIds(List<UserId> userIds);
 }

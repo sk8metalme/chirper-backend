@@ -44,4 +44,30 @@ public interface ITweetRepository {
      * @param tweetId 削除するツイートのID
      */
     void delete(TweetId tweetId);
+
+    /**
+     * キーワードでツイートを検索（content部分一致、論理削除除外）
+     * @param keyword 検索キーワード
+     * @param page ページ番号（0始まり）
+     * @param size ページサイズ
+     * @return ツイートのリスト
+     */
+    List<Tweet> searchByKeyword(String keyword, int page, int size);
+
+    /**
+     * キーワード検索のヒット件数を取得
+     * @param keyword 検索キーワード
+     * @return 件数
+     */
+    long countByKeyword(String keyword);
+
+    /**
+     * 指定ユーザーのツイートを取得（ユーザープロフィール用）
+     * 論理削除されたツイート(isDeleted=true)は除外
+     * @param userId ユーザーID
+     * @param page ページ番号（0始まり）
+     * @param size ページサイズ
+     * @return ツイートのリスト（作成日時降順）
+     */
+    List<Tweet> findByUserId(UserId userId, int page, int size);
 }

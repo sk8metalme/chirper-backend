@@ -41,4 +41,26 @@ public interface IFollowRepository {
      * @param followedUserId フォローされるユーザーのID
      */
     void delete(UserId followerUserId, UserId followedUserId);
+
+    /**
+     * 指定ユーザーのフォロワー数を取得
+     * @param userId フォローされているユーザーのID
+     * @return フォロワー数
+     */
+    long countFollowers(UserId userId);
+
+    /**
+     * 指定ユーザーのフォロー数を取得
+     * @param userId フォローしているユーザーのID
+     * @return フォロー数
+     */
+    long countFollowing(UserId userId);
+
+    /**
+     * フォロー関係が存在するかチェック
+     * @param followerUserId フォローするユーザーのID
+     * @param followedUserId フォローされるユーザーのID
+     * @return フォロー関係が存在する場合true
+     */
+    boolean existsByFollowerAndFollowed(UserId followerUserId, UserId followedUserId);
 }

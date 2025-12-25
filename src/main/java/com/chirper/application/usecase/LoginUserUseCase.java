@@ -1,6 +1,7 @@
 package com.chirper.application.usecase;
 
 import com.chirper.domain.entity.User;
+import com.chirper.domain.exception.UnauthorizedAccessException;
 import com.chirper.domain.repository.IUserRepository;
 import com.chirper.domain.service.AuthenticationService;
 import com.chirper.domain.valueobject.UserId;
@@ -37,7 +38,7 @@ public class LoginUserUseCase {
      * @param usernameString ユーザー名
      * @param plainPassword 平文パスワード
      * @return ログイン結果（JWTトークン、ユーザーID、ユーザー名）
-     * @throws IllegalArgumentException 認証失敗の場合
+     * @throws UnauthorizedAccessException 認証失敗の場合
      */
     public LoginResult execute(String usernameString, String plainPassword) {
         // 1. Value Objectsを生成（バリデーション）
@@ -46,7 +47,7 @@ public class LoginUserUseCase {
         // 2. ユーザーを検索
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (userOptional.isEmpty()) {
-            throw new IllegalArgumentException("Authentication failed: Invalid credentials");
+            throw new UnauthorizedAccessException("認証に失敗しました。ユーザー名またはパスワードが正しくありません。");
         }
 
         User user = userOptional.get();
@@ -54,7 +55,7 @@ public class LoginUserUseCase {
         // 3. パスワードを検証
         boolean authenticated = authenticationService.authenticate(user, plainPassword);
         if (!authenticated) {
-            throw new IllegalArgumentException("Authentication failed: Invalid credentials");
+            throw new UnauthorizedAccessException("認証に失敗しました。ユーザー名またはパスワードが正しくありません。");
         }
 
         // 4. JWTトークンを生成

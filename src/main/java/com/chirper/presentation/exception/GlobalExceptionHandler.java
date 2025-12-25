@@ -1,5 +1,6 @@
 package com.chirper.presentation.exception;
 
+import com.chirper.domain.exception.DomainException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
@@ -87,6 +88,42 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
+    /**
+     * DomainException ハンドラー
+     * ドメイン層の例外を処理し、適切なHTTPステータスコードを返す
+     *
+     * @param ex DomainException（EntityNotFoundException, DuplicateEntityException等）
+     * @return エラーレスポンス
+     */
+    @ExceptionHandler(DomainException.class)
+    public ResponseEntity<ErrorResponse> handleDomainException(DomainException ex) {
+        logger.warn("Domain exception: {} - {}", ex.getErrorCode(), ex.getMessage());
+
+        HttpStatus status = switch (ex.getErrorCode()) {
+            case "NOT_FOUND" -> HttpStatus.NOT_FOUND;
+            case "CONFLICT" -> HttpStatus.CONFLICT;
+            case "BAD_REQUEST" -> HttpStatus.BAD_REQUEST;
+            case "UNAUTHORIZED" -> HttpStatus.UNAUTHORIZED;
+            case "FORBIDDEN" -> HttpStatus.FORBIDDEN;
+            default -> HttpStatus.INTERNAL_SERVER_ERROR;
+        };
+
+        ErrorResponse errorResponse = new ErrorResponse(
+            ex.getErrorCode(),
+            ex.getMessage(),
+            List.of(),
+            Instant.now()
+        );
+
+        return ResponseEntity.status(status).body(errorResponse);
+    }
+
+    /**
+     * BusinessException ハンドラー
+     *
+     * @deprecated DomainExceptionを使用してください
+     */
+    @Deprecated(since = "Phase 5", forRemoval = true)
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
         logger.warn("Business exception: {} - {}", ex.getErrorCode(), ex.getMessage());

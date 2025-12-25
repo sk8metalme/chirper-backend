@@ -74,4 +74,27 @@ public class TweetRepositoryImpl implements ITweetRepository {
             "load tweet -> tweet.delete(userId) -> save(tweet)"
         );
     }
+
+    @Override
+    public List<Tweet> searchByKeyword(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return springDataTweetRepository.searchByKeyword(keyword, pageable)
+            .stream()
+            .map(TweetJpaEntity::toDomainEntity)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public long countByKeyword(String keyword) {
+        return springDataTweetRepository.countByKeyword(keyword);
+    }
+
+    @Override
+    public List<Tweet> findByUserId(UserId userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return springDataTweetRepository.findByUserIdAndIsDeletedFalse(userId.value(), pageable)
+            .stream()
+            .map(TweetJpaEntity::toDomainEntity)
+            .collect(Collectors.toList());
+    }
 }

@@ -1,6 +1,7 @@
 package com.chirper.application.usecase;
 
 import com.chirper.domain.entity.Tweet;
+import com.chirper.domain.exception.EntityNotFoundException;
 import com.chirper.domain.repository.ILikeRepository;
 import com.chirper.domain.repository.IRetweetRepository;
 import com.chirper.domain.repository.ITweetRepository;
@@ -40,7 +41,7 @@ public class GetTweetUseCase {
      * @param tweetId ツイートID
      * @return ツイート情報、いいね数、リツイート数
      * @throws NullPointerException tweetIdがnullの場合
-     * @throws IllegalArgumentException ツイートが見つからない場合
+     * @throws EntityNotFoundException ツイートが見つからない場合
      */
     public TweetResult execute(TweetId tweetId) {
         if (tweetId == null) {
@@ -49,7 +50,7 @@ public class GetTweetUseCase {
 
         // ツイートを取得
         Tweet tweet = tweetRepository.findById(tweetId)
-            .orElseThrow(() -> new IllegalArgumentException("Tweet not found"));
+            .orElseThrow(() -> new EntityNotFoundException("ツイートが見つかりません"));
 
         // いいね数とリツイート数を取得
         int likesCount = likeRepository.findByTweetId(tweetId).size();

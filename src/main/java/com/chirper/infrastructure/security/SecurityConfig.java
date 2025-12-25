@@ -32,6 +32,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            // CSRF無効化: ステートレスJWT認証のAPIのため、CSRFトークンは不要
+            // フロントエンドはSPA構成でJWTをAuthorizationヘッダーで送信
+            // 参考: https://docs.spring.io/spring-security/reference/features/exploits/csrf.html#csrf-when
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

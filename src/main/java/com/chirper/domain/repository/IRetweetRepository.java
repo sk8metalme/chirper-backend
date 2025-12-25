@@ -5,6 +5,7 @@ import com.chirper.domain.valueobject.TweetId;
 import com.chirper.domain.valueobject.UserId;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -49,4 +50,18 @@ public interface IRetweetRepository {
      * @param tweetId ツイートID
      */
     void delete(UserId userId, TweetId tweetId);
+
+    /**
+     * 指定ツイートのリツイート数を取得
+     * @param tweetId ツイートID
+     * @return リツイート数
+     */
+    long countByTweetId(TweetId tweetId);
+
+    /**
+     * 複数ツイートのリツイート数をバッチ取得（N+1クエリ回避）
+     * @param tweetIds ツイートIDのリスト
+     * @return ツイートIDとリツイート数のマップ
+     */
+    Map<TweetId, Long> countByTweetIds(List<TweetId> tweetIds);
 }

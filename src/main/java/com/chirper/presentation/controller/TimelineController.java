@@ -56,18 +56,18 @@ public class TimelineController {
 
         // 3. レスポンスを作成
         List<TweetResponse> tweets = result.tweets().stream()
-            .map(tweetWithStatus -> new TweetResponse(
-                tweetWithStatus.tweet().getId().value(),
-                tweetWithStatus.tweet().getUserId().value(),
-                "", // username - 実装省略
-                "", // displayName - 実装省略
-                "", // avatarUrl - 実装省略
-                tweetWithStatus.tweet().getContent().value(),
-                tweetWithStatus.tweet().getCreatedAt(),
-                0, // likesCount - 実装省略
-                0, // retweetsCount - 実装省略
-                tweetWithStatus.likedByCurrentUser(),
-                tweetWithStatus.retweetedByCurrentUser()
+            .map(tweetWithDetails -> new TweetResponse(
+                tweetWithDetails.tweet().getId().value(),
+                tweetWithDetails.tweet().getUserId().value(),
+                tweetWithDetails.author() != null ? tweetWithDetails.author().getUsername().value() : "",
+                tweetWithDetails.author() != null ? tweetWithDetails.author().getDisplayName() : "",
+                tweetWithDetails.author() != null ? tweetWithDetails.author().getAvatarUrl() : "",
+                tweetWithDetails.tweet().getContent().value(),
+                tweetWithDetails.tweet().getCreatedAt(),
+                (int) tweetWithDetails.likesCount(),
+                (int) tweetWithDetails.retweetsCount(),
+                tweetWithDetails.likedByCurrentUser(),
+                tweetWithDetails.retweetedByCurrentUser()
             ))
             .collect(Collectors.toList());
 

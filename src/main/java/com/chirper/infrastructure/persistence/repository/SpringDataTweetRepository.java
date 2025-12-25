@@ -33,4 +33,39 @@ public interface SpringDataTweetRepository extends JpaRepository<TweetJpaEntity,
         @Param("userIds") List<UUID> userIds,
         Pageable pageable
     );
+
+    /**
+     * キーワードでツイートを検索（content部分一致、論理削除除外）
+     * @param keyword 検索キーワード
+     * @param pageable ページング情報
+     * @return ツイートのリスト
+     */
+    @Query("SELECT t FROM TweetJpaEntity t WHERE " +
+           "t.isDeleted = false AND " +
+           "LOWER(t.content) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "ORDER BY t.createdAt DESC")
+    List<TweetJpaEntity> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
+    /**
+     * キーワード検索のヒット件数を取得
+     * @param keyword 検索キーワード
+     * @return 件数
+     */
+    @Query("SELECT COUNT(t) FROM TweetJpaEntity t WHERE " +
+           "t.isDeleted = false AND " +
+           "LOWER(t.content) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    long countByKeyword(@Param("keyword") String keyword);
+
+    /**
+     * 指定ユーザーのツイートを取得（ユーザープロフィール用）
+     * 論理削除されたツイート(isDeleted=true)は除外
+     * @param userId ユーザーID
+     * @param pageable ページング情報
+     * @return ツイートのリスト（作成日時降順）
+     */
+    @Query("SELECT t FROM TweetJpaEntity t WHERE " +
+           "t.userId = :userId AND " +
+           "t.isDeleted = false " +
+           "ORDER BY t.createdAt DESC")
+    List<TweetJpaEntity> findByUserIdAndIsDeletedFalse(@Param("userId") UUID userId, Pageable pageable);
 }
