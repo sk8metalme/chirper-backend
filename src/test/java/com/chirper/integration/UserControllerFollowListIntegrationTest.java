@@ -110,12 +110,23 @@ class UserControllerFollowListIntegrationTest {
     }
 
     private void followUser(String followerToken, String targetUsername) {
+        // まずユーザー名からユーザーIDを取得
+        String userId = given()
+            .header("Authorization", "Bearer " + followerToken)
+            .when()
+            .get("/users/" + targetUsername)
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("userId");
+
+        // ユーザーIDを使ってフォロー
         given()
             .header("Authorization", "Bearer " + followerToken)
             .when()
-            .post("/users/" + targetUsername + "/follow")
+            .post("/users/" + userId + "/follow")
             .then()
-            .statusCode(200);
+            .statusCode(201);
 
         log.info("User followed: {}", targetUsername);
     }
