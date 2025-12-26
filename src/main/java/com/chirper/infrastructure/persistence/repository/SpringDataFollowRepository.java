@@ -1,6 +1,7 @@
 package com.chirper.infrastructure.persistence.repository;
 
 import com.chirper.infrastructure.persistence.entity.FollowJpaEntity;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -61,4 +62,31 @@ public interface SpringDataFollowRepository extends JpaRepository<FollowJpaEntit
      * @return フォロー関係が存在する場合true
      */
     boolean existsByFollowerUserIdAndFollowedUserId(UUID followerUserId, UUID followedUserId);
+
+    /**
+     * 指定ユーザーのフォロワーのユーザーIDリストを取得（ページネーション対応）
+     * @param followedUserId フォローされているユーザーのID
+     * @param pageable ページネーション情報
+     * @return フォロワーのユーザーIDリスト
+     */
+    @Query("SELECT f.followerUserId FROM FollowJpaEntity f WHERE f.followedUserId = :followedUserId ORDER BY f.createdAt DESC")
+    List<UUID> findFollowerUserIds(@Param("followedUserId") UUID followedUserId, Pageable pageable);
+
+    /**
+     * 指定ユーザーがフォローしているユーザーのIDリストを取得（ページネーション対応）
+     * @param followerUserId フォローしているユーザーのID
+     * @param pageable ページネーション情報
+     * @return フォローしているユーザーのIDリスト
+     */
+    @Query("SELECT f.followedUserId FROM FollowJpaEntity f WHERE f.followerUserId = :followerUserId ORDER BY f.createdAt DESC")
+    List<UUID> findFollowingUserIds(@Param("followerUserId") UUID followerUserId, Pageable pageable);
+
+    /**
+     * 指定したユーザーIDリストの中で、followerUserIdがフォローしているユーザーIDを取得
+     * @param followerUserId フォローしているユーザーのID
+     * @param targetUserIds 対象となるユーザーIDのリスト
+     * @return followerUserIdがフォローしているユーザーIDのリスト
+     */
+    @Query("SELECT f.followedUserId FROM FollowJpaEntity f WHERE f.followerUserId = :followerUserId AND f.followedUserId IN :targetUserIds")
+    List<UUID> findFollowedUserIdsIn(@Param("followerUserId") UUID followerUserId, @Param("targetUserIds") List<UUID> targetUserIds);
 }

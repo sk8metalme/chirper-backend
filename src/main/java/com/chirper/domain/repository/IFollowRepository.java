@@ -63,4 +63,30 @@ public interface IFollowRepository {
      * @return フォロー関係が存在する場合true
      */
     boolean existsByFollowerAndFollowed(UserId followerUserId, UserId followedUserId);
+
+    /**
+     * 指定ユーザーのフォロワーのUserIdリストを取得（ページネーション対応）
+     * @param followedUserId フォローされているユーザーのID
+     * @param offset 取得開始位置（0から始まる）
+     * @param limit 取得件数
+     * @return フォロワーのUserIdリスト
+     */
+    List<UserId> findFollowerUserIds(UserId followedUserId, int offset, int limit);
+
+    /**
+     * 指定ユーザーがフォローしているユーザーのUserIdリストを取得（ページネーション対応）
+     * @param followerUserId フォローしているユーザーのID
+     * @param offset 取得開始位置（0から始まる）
+     * @param limit 取得件数
+     * @return フォローしているユーザーのUserIdリスト
+     */
+    List<UserId> findFollowingUserIds(UserId followerUserId, int offset, int limit);
+
+    /**
+     * 指定したUserIdリストの中で、currentUserがフォローしているUserIdを取得（バッチ処理用）
+     * @param followerUserId フォローしているユーザーのID
+     * @param targetUserIds 対象となるUserIdのリスト
+     * @return followerUserIdがフォローしているUserIdのリスト
+     */
+    List<UserId> findFollowedUserIdsIn(UserId followerUserId, List<UserId> targetUserIds);
 }

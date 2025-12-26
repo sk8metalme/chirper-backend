@@ -1,11 +1,15 @@
 package com.chirper.presentation.controller;
 
+import com.chirper.application.usecase.GetFollowersUseCase;
+import com.chirper.application.usecase.GetFollowingUseCase;
 import com.chirper.application.usecase.GetUserProfileUseCase;
 import com.chirper.application.usecase.UpdateProfileUseCase;
 import com.chirper.domain.entity.Tweet;
 import com.chirper.domain.entity.User;
 import com.chirper.domain.valueobject.UserId;
 import com.chirper.domain.valueobject.Username;
+import com.chirper.presentation.dto.user.FollowListResponse;
+import com.chirper.presentation.dto.user.FollowUserResponse;
 import com.chirper.presentation.dto.user.UpdateProfileRequest;
 import com.chirper.presentation.dto.user.UpdateProfileResponse;
 import com.chirper.presentation.dto.user.UserProfileResponse;
@@ -25,10 +29,19 @@ public class UserController {
 
     private final GetUserProfileUseCase getUserProfileUseCase;
     private final UpdateProfileUseCase updateProfileUseCase;
+    private final GetFollowersUseCase getFollowersUseCase;
+    private final GetFollowingUseCase getFollowingUseCase;
 
-    public UserController(GetUserProfileUseCase getUserProfileUseCase, UpdateProfileUseCase updateProfileUseCase) {
+    public UserController(
+        GetUserProfileUseCase getUserProfileUseCase,
+        UpdateProfileUseCase updateProfileUseCase,
+        GetFollowersUseCase getFollowersUseCase,
+        GetFollowingUseCase getFollowingUseCase
+    ) {
         this.getUserProfileUseCase = getUserProfileUseCase;
         this.updateProfileUseCase = updateProfileUseCase;
+        this.getFollowersUseCase = getFollowersUseCase;
+        this.getFollowingUseCase = getFollowingUseCase;
     }
 
     @GetMapping("/{username}")
@@ -101,6 +114,90 @@ public class UserController {
         updateProfileUseCase.execute(userId, request.displayName(), request.bio(), request.avatarUrl());
 
         UpdateProfileResponse response = new UpdateProfileResponse("プロフィールを更新しました");
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{username}/followers")
+    public ResponseEntity<FollowListResponse> getFollowers(
+        @PathVariable String username,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
+    ) {
+        // 現在のユーザーIDを取得（認証されていない場合はnull）
+        UserId currentUserId = null;
+        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
+            String userIdString = authentication.getName();
+            currentUserId = UserId.of(userIdString);
+        }
+
+        // GetFollowersUseCaseを実行
+        GetFollowersUseCase.FollowersResult result;
+        try {
+            result = getFollowersUseCase.execute(new Username(username), currentUserId, page, size);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException("NOT_FOUND", "ユーザーが見つかりません");
+        }
+
+        // レスポンスに変換
+        List<FollowUserResponse> userResponses = result.followers().stream()
+            .map(followerInfo -> new FollowUserResponse(
+                followerInfo.user().getId().value(),
+                followerInfo.user().getUsername().value(),
+                followerInfo.user().getDisplayName(),
+                followerInfo.user().getAvatarUrl(),
+                followerInfo.followedByCurrentUser()
+            ))
+            .collect(Collectors.toList());
+
+        FollowListResponse response = new FollowListResponse(
+            userResponses,
+            result.currentPage(),
+            result.totalPages()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{username}/following")
+    public ResponseEntity<FollowListResponse> getFollowing(
+        @PathVariable String username,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
+    ) {
+        // 現在のユーザーIDを取得（認証されていない場合はnull）
+        UserId currentUserId = null;
+        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
+            String userIdString = authentication.getName();
+            currentUserId = UserId.of(userIdString);
+        }
+
+        // GetFollowingUseCaseを実行
+        GetFollowingUseCase.FollowingResult result;
+        try {
+            result = getFollowingUseCase.execute(new Username(username), currentUserId, page, size);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException("NOT_FOUND", "ユーザーが見つかりません");
+        }
+
+        // レスポンスに変換
+        List<FollowUserResponse> userResponses = result.following().stream()
+            .map(followingInfo -> new FollowUserResponse(
+                followingInfo.user().getId().value(),
+                followingInfo.user().getUsername().value(),
+                followingInfo.user().getDisplayName(),
+                followingInfo.user().getAvatarUrl(),
+                followingInfo.followedByCurrentUser()
+            ))
+            .collect(Collectors.toList());
+
+        FollowListResponse response = new FollowListResponse(
+            userResponses,
+            result.currentPage(),
+            result.totalPages()
+        );
+
         return ResponseEntity.ok(response);
     }
 }
