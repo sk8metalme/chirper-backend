@@ -93,4 +93,23 @@ public class JwtUtil {
             .signWith(secretKey, Jwts.SIG.HS256)
             .compact();
     }
+
+    /**
+     * カスタム有効期限でJWTトークンを生成（テスト用）
+     *
+     * @param userId ユーザーID
+     * @param expirationSeconds 有効期限（秒）
+     * @return JWTトークン
+     */
+    public String generateTokenWithCustomExpiration(String userId, long expirationSeconds) {
+        Instant now = Instant.now();
+        Instant expiration = now.plusSeconds(expirationSeconds);
+
+        return Jwts.builder()
+            .subject(userId)
+            .issuedAt(Date.from(now))
+            .expiration(Date.from(expiration))
+            .signWith(secretKey, Jwts.SIG.HS256)
+            .compact();
+    }
 }

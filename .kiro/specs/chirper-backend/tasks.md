@@ -383,7 +383,7 @@ chirper-backendの実装タスクは、オニオンアーキテクチャの依�
   - TestContainersでPostgreSQL起動、実際のデータベースでテスト
   - _Requirements: 10.7_
 
-- [ ] 18.5 (P) JWT認証フィルター統合テスト実装
+- [x] 18.5 (P) JWT認証フィルター統合テスト実装
   - JWT認証フローのエンドツーエンドテスト
   - トークン検証失敗時の401 Unauthorizedエラーを検証
   - _Requirements: 6.1, 6.2, 6.3, 10.7_
