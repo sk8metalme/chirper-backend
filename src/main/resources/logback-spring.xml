@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- プロパティ定義 -->
+    <property name="LOG_FILE" value="${LOG_FILE:-logs/chirper-backend}"/>
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss} - %msg%n"/>
+
+    <!-- コンソールアペンダー（開発環境用） -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- JSON形式のファイルアペンダー（本番環境用） -->
+    <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}.json</file>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- フィールドの追加 -->
+            <customFields>{"application":"chirper-backend"}</customFields>
+
+            <!-- 機密情報のマスキング設定 -->
+            <fieldNamesToMask>
+                <fieldName>password</fieldName>
+                <fieldName>token</fieldName>
+                <fieldName>jwt</fieldName>
+                <fieldName>authorization</fieldName>
+                <fieldName>secret</fieldName>
+            </fieldNamesToMask>
+
+            <!-- メッセージ内のパスワード・トークンのマスキング -->
+            <messageMaskPattern>
+                <pattern>password["\s:=]+[^,\s}\]]+</pattern>
+                <replacement>password=****</replacement>
+            </messageMaskPattern>
+            <messageMaskPattern>
+                <pattern>token["\s:=]+[^,\s}\]]+</pattern>
+                <replacement>token=****</replacement>
+            </messageMaskPattern>
+            <messageMaskPattern>
+                <pattern>Bearer\s+[A-Za-z0-9\-._~+/]+=*</pattern>
+                <replacement>Bearer ****</replacement>
+            </messageMaskPattern>
+        </encoder>
+
+        <!-- ローテーション設定 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 日次ローテーション -->
+            <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.json</fileNamePattern>
+            <!-- 7日間保持 -->
+            <maxHistory>7</maxHistory>
+            <!-- 最大サイズ制限（オプション） -->
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- テキスト形式のファイルアペンダー（バックアップ用） -->
+    <appender name="TEXT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- 非同期アペンダー（パフォーマンス向上） -->
+    <appender name="ASYNC_JSON" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="JSON_FILE"/>
+    </appender>
+
+    <!-- Spring プロファイル別設定 -->
+    <springProfile name="dev,default">
+        <!-- 開発環境：コンソールとテキストファイルのみ -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="TEXT_FILE"/>
+        </root>
+
+        <!-- アプリケーションログは詳細に -->
+        <logger name="com.chirper" level="INFO"/>
+
+        <!-- Spring Frameworkのログは警告のみ -->
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.springframework.web" level="WARN"/>
+        <logger name="org.springframework.security" level="WARN"/>
+
+        <!-- Hibernateのログ -->
+        <logger name="org.hibernate.SQL" level="WARN"/>
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="WARN"/>
+    </springProfile>
+
+    <springProfile name="prod">
+        <!-- 本番環境：JSON形式のみ（構造化ログ） -->
+        <root level="INFO">
+            <appender-ref ref="ASYNC_JSON"/>
+        </root>
+
+        <logger name="com.chirper" level="INFO"/>
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.springframework.web" level="WARN"/>
+        <logger name="org.springframework.security" level="WARN"/>
+        <logger name="org.hibernate.SQL" level="WARN"/>
+    </springProfile>
+
+    <springProfile name="test">
+        <!-- テスト環境：コンソールのみ、エラーレベル以上 -->
+        <root level="ERROR">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+        <logger name="com.chirper" level="INFO"/>
+    </springProfile>
+</configuration>
