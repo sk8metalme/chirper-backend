@@ -54,6 +54,15 @@ public class GetFollowingUseCase {
         if (username == null) {
             throw new NullPointerException("Username cannot be null");
         }
+        if (page < 0) {
+            throw new IllegalArgumentException("Page must be non-negative");
+        }
+        if (size <= 0) {
+            throw new IllegalArgumentException("Size must be positive");
+        }
+        if (size > 100) {
+            throw new IllegalArgumentException("Size must not exceed 100");
+        }
 
         // 対象ユーザーを取得
         User targetUser = userRepository.findByUsername(username)
@@ -61,7 +70,7 @@ public class GetFollowingUseCase {
 
         // フォロー中の総数を取得（ページネーション用）
         long totalFollowing = followRepository.countFollowing(targetUser.getId());
-        int totalPages = (int) Math.ceil((double) totalFollowing / size);
+        int totalPages = totalFollowing == 0 ? 0 : (int) Math.ceil((double) totalFollowing / size);
 
         // ページネーションでフォロー中のUserIdリストを取得
         int offset = page * size;

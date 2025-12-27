@@ -84,7 +84,12 @@ public class FollowRepositoryImpl implements IFollowRepository {
 
     @Override
     public List<UserId> findFollowerUserIds(UserId followedUserId, int offset, int limit) {
-        PageRequest pageRequest = PageRequest.of(offset / limit, limit);
+        // offsetがlimitで割り切れない場合は呼び出し元のロジックに問題がある
+        if (offset % limit != 0) {
+            throw new IllegalArgumentException("offset must be a multiple of limit");
+        }
+        int pageNumber = offset / limit;
+        PageRequest pageRequest = PageRequest.of(pageNumber, limit);
         List<UUID> uuidList = springDataFollowRepository.findFollowerUserIds(
             followedUserId.value(),
             pageRequest
@@ -96,7 +101,12 @@ public class FollowRepositoryImpl implements IFollowRepository {
 
     @Override
     public List<UserId> findFollowingUserIds(UserId followerUserId, int offset, int limit) {
-        PageRequest pageRequest = PageRequest.of(offset / limit, limit);
+        // offsetがlimitで割り切れない場合は呼び出し元のロジックに問題がある
+        if (offset % limit != 0) {
+            throw new IllegalArgumentException("offset must be a multiple of limit");
+        }
+        int pageNumber = offset / limit;
+        PageRequest pageRequest = PageRequest.of(pageNumber, limit);
         List<UUID> uuidList = springDataFollowRepository.findFollowingUserIds(
             followerUserId.value(),
             pageRequest

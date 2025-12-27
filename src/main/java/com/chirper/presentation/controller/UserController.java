@@ -6,6 +6,7 @@ import com.chirper.application.usecase.GetUserProfileUseCase;
 import com.chirper.application.usecase.UpdateProfileUseCase;
 import com.chirper.domain.entity.Tweet;
 import com.chirper.domain.entity.User;
+import com.chirper.domain.exception.EntityNotFoundException;
 import com.chirper.domain.valueobject.UserId;
 import com.chirper.domain.valueobject.Username;
 import com.chirper.presentation.dto.user.FollowListResponse;
@@ -50,20 +51,16 @@ public class UserController {
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size
     ) {
-        // 1. 現在のユーザーIDを取得（認証されていない場合はnull）
-        UserId currentUserId = null;
-        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
-            String userIdString = authentication.getName();
-            currentUserId = UserId.of(userIdString);
-        }
+        UserId currentUserId = getCurrentUserIdOrNull();
 
-        // 2. GetUserProfileUseCaseを実行
+        // GetUserProfileUseCaseを実行
         GetUserProfileUseCase.UserProfileResult result;
         try {
             result = getUserProfileUseCase.execute(new Username(username), currentUserId, page, size);
+        } catch (EntityNotFoundException e) {
+            throw new BusinessException("NOT_FOUND", e.getMessage());
         } catch (IllegalArgumentException e) {
-            throw new BusinessException("NOT_FOUND", "ユーザーが見つかりません");
+            throw new BusinessException("INVALID_PARAMETER", "パラメータが不正です: " + e.getMessage());
         }
 
         // 3. ツイート一覧をTweetResponseに変換
@@ -117,26 +114,39 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 現在のユーザーIDを取得（認証されていない場合はnull）
+     * @return 現在のユーザーID（未認証の場合はnull）
+     */
+    private UserId getCurrentUserIdOrNull() {
+        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
+            .getContext()
+            .getAuthentication();
+
+        if (authentication != null
+            && authentication.isAuthenticated()
+            && !"anonymousUser".equals(authentication.getPrincipal())) {
+            return UserId.of(authentication.getName());
+        }
+        return null;
+    }
+
     @GetMapping("/{username}/followers")
     public ResponseEntity<FollowListResponse> getFollowers(
         @PathVariable String username,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size
     ) {
-        // 現在のユーザーIDを取得（認証されていない場合はnull）
-        UserId currentUserId = null;
-        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
-            String userIdString = authentication.getName();
-            currentUserId = UserId.of(userIdString);
-        }
+        UserId currentUserId = getCurrentUserIdOrNull();
 
         // GetFollowersUseCaseを実行
         GetFollowersUseCase.FollowersResult result;
         try {
             result = getFollowersUseCase.execute(new Username(username), currentUserId, page, size);
+        } catch (EntityNotFoundException e) {
+            throw new BusinessException("NOT_FOUND", e.getMessage());
         } catch (IllegalArgumentException e) {
-            throw new BusinessException("NOT_FOUND", "ユーザーが見つかりません");
+            throw new BusinessException("INVALID_PARAMETER", "パラメータが不正です: " + e.getMessage());
         }
 
         // レスポンスに変換
@@ -165,20 +175,16 @@ public class UserController {
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size
     ) {
-        // 現在のユーザーIDを取得（認証されていない場合はnull）
-        UserId currentUserId = null;
-        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
-            String userIdString = authentication.getName();
-            currentUserId = UserId.of(userIdString);
-        }
+        UserId currentUserId = getCurrentUserIdOrNull();
 
         // GetFollowingUseCaseを実行
         GetFollowingUseCase.FollowingResult result;
         try {
             result = getFollowingUseCase.execute(new Username(username), currentUserId, page, size);
+        } catch (EntityNotFoundException e) {
+            throw new BusinessException("NOT_FOUND", e.getMessage());
         } catch (IllegalArgumentException e) {
-            throw new BusinessException("NOT_FOUND", "ユーザーが見つかりません");
+            throw new BusinessException("INVALID_PARAMETER", "パラメータが不正です: " + e.getMessage());
         }
 
         // レスポンスに変換

@@ -9,7 +9,6 @@ import com.chirper.domain.valueobject.Username;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,6 +54,15 @@ public class GetFollowersUseCase {
         if (username == null) {
             throw new NullPointerException("Username cannot be null");
         }
+        if (page < 0) {
+            throw new IllegalArgumentException("Page must be non-negative");
+        }
+        if (size <= 0) {
+            throw new IllegalArgumentException("Size must be positive");
+        }
+        if (size > 100) {
+            throw new IllegalArgumentException("Size must not exceed 100");
+        }
 
         // 対象ユーザーを取得
         User targetUser = userRepository.findByUsername(username)
@@ -62,7 +70,7 @@ public class GetFollowersUseCase {
 
         // フォロワーの総数を取得（ページネーション用）
         long totalFollowers = followRepository.countFollowers(targetUser.getId());
-        int totalPages = (int) Math.ceil((double) totalFollowers / size);
+        int totalPages = totalFollowers == 0 ? 0 : (int) Math.ceil((double) totalFollowers / size);
 
         // ページネーションでフォロワーのUserIdリストを取得
         int offset = page * size;
