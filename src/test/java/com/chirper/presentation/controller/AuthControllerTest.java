@@ -48,6 +48,9 @@ class AuthControllerTest {
     private LoginUserUseCase loginUserUseCase;
 
     @MockBean
+    private com.chirper.domain.service.AuthenticationService authenticationService;
+
+    @MockBean
     private com.chirper.infrastructure.security.JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @MockBean
@@ -114,13 +117,16 @@ class AuthControllerTest {
         // Given
         LoginRequest request = new LoginRequest("testuser", "password123");
         UUID userId = UUID.randomUUID();
+        String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
         LoginUserUseCase.LoginResult loginResult = new LoginUserUseCase.LoginResult(
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            token,
             new UserId(userId),
             "testuser"
         );
+        Instant expirationTime = Instant.now().plusSeconds(3600);
 
         when(loginUserUseCase.execute(any(), any())).thenReturn(loginResult);
+        when(authenticationService.getExpirationTime(token)).thenReturn(expirationTime);
 
         // When & Then
         mockMvc.perform(post("/api/v1/auth/login")

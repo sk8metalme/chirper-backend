@@ -18,6 +18,14 @@ import java.util.UUID;
 public interface SpringDataTweetRepository extends JpaRepository<TweetJpaEntity, UUID> {
 
     /**
+     * IDでツイートを検索（論理削除除外）
+     * @param id ツイートID
+     * @return 見つかった場合はTweetJpaEntity、論理削除済みまたは存在しない場合はOptional.empty()
+     */
+    @Query("SELECT t FROM TweetJpaEntity t WHERE t.id = :id AND t.isDeleted = false")
+    java.util.Optional<TweetJpaEntity> findByIdAndIsDeletedFalse(@Param("id") UUID id);
+
+    /**
      * 複数のユーザーIDに基づいてツイートを取得（タイムライン用）
      * N+1クエリ問題を回避するため、効率的なクエリを使用
      * 論理削除されたツイート(isDeleted=true)は除外

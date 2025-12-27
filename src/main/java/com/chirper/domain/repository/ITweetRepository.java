@@ -23,8 +23,9 @@ public interface ITweetRepository {
 
     /**
      * IDでツイートを検索
+     * 論理削除されたツイート(isDeleted=true)は除外
      * @param tweetId ツイートID
-     * @return 見つかった場合はTweetエンティティ、見つからない場合はOptional.empty()
+     * @return 見つかった場合はTweetエンティティ、論理削除済みまたは見つからない場合はOptional.empty()
      */
     Optional<Tweet> findById(TweetId tweetId);
 

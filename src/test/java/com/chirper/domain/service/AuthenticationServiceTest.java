@@ -21,7 +21,7 @@ class AuthenticationServiceTest {
 
     @BeforeEach
     void setUp() {
-        authenticationService = new AuthenticationService(TestConstants.Authentication.JWT_SECRET);
+        authenticationService = new AuthenticationService(TestConstants.Authentication.JWT_SECRET, 3600L);
     }
 
     @Nested
@@ -32,7 +32,7 @@ class AuthenticationServiceTest {
         @DisplayName("正常なシークレットキーでインスタンス化できる")
         void shouldCreateInstanceWithValidSecret() {
             // When/Then
-            assertDoesNotThrow(() -> new AuthenticationService(TestConstants.Authentication.JWT_SECRET));
+            assertDoesNotThrow(() -> new AuthenticationService(TestConstants.Authentication.JWT_SECRET, 3600L));
         }
 
         @Test
@@ -40,7 +40,7 @@ class AuthenticationServiceTest {
         void shouldThrowExceptionWithNullSecret() {
             // When/Then
             assertThrows(IllegalArgumentException.class,
-                () -> new AuthenticationService(null));
+                () -> new AuthenticationService(null, 3600L));
         }
 
         @Test
@@ -48,7 +48,7 @@ class AuthenticationServiceTest {
         void shouldThrowExceptionWithBlankSecret() {
             // When/Then
             assertThrows(IllegalArgumentException.class,
-                () -> new AuthenticationService("   "));
+                () -> new AuthenticationService("   ", 3600L));
         }
 
         @Test
@@ -56,7 +56,7 @@ class AuthenticationServiceTest {
         void shouldThrowExceptionWithShortSecret() {
             // When/Then
             assertThrows(IllegalArgumentException.class,
-                () -> new AuthenticationService("short-key"));
+                () -> new AuthenticationService("short-key", 3600L));
         }
     }
 
@@ -157,13 +157,13 @@ class AuthenticationServiceTest {
             // 最初のトークンを生成
             java.time.Instant firstTime = java.time.Instant.parse("2024-01-01T00:00:00Z");
             java.time.Clock fixedClock1 = java.time.Clock.fixed(firstTime, java.time.ZoneId.of("UTC"));
-            AuthenticationService service1 = new AuthenticationService(TestConstants.Authentication.JWT_SECRET, fixedClock1);
+            AuthenticationService service1 = new AuthenticationService(TestConstants.Authentication.JWT_SECRET, 3600L, fixedClock1);
             String token1 = service1.generateJwtToken(userId);
 
             // 2番目のトークンを異なる時刻で生成
             java.time.Instant secondTime = java.time.Instant.parse("2024-01-01T01:00:00Z");
             java.time.Clock fixedClock2 = java.time.Clock.fixed(secondTime, java.time.ZoneId.of("UTC"));
-            AuthenticationService service2 = new AuthenticationService(TestConstants.Authentication.JWT_SECRET, fixedClock2);
+            AuthenticationService service2 = new AuthenticationService(TestConstants.Authentication.JWT_SECRET, 3600L, fixedClock2);
             String token2 = service2.generateJwtToken(userId);
 
             // Then
@@ -225,7 +225,8 @@ class AuthenticationServiceTest {
         void shouldReturnNullForTokenWithDifferentSecret() {
             // Given
             AuthenticationService otherService = new AuthenticationService(
-                TestConstants.Authentication.DIFFERENT_JWT_SECRET
+                TestConstants.Authentication.DIFFERENT_JWT_SECRET,
+                3600L
             );
             UserId userId = UserId.generate();
             String token = otherService.generateJwtToken(userId);
