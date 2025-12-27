@@ -140,8 +140,8 @@ class TweetRepositoryIntegrationTest {
     }
 
     @Test
-    @DisplayName("findById() - 論理削除されたツイートも取得できること")
-    void findById_shouldReturnDeletedTweet() {
+    @DisplayName("findById() - 論理削除されたツイートは取得できないこと")
+    void findById_shouldNotReturnDeletedTweet() {
         // Given
         Tweet tweet = createAndSaveTweet(testUser.getId(), "Deleted tweet");
         tweet.delete(testUser.getId());
@@ -150,9 +150,8 @@ class TweetRepositoryIntegrationTest {
         // When
         Optional<Tweet> foundTweet = tweetRepository.findById(tweet.getId());
 
-        // Then
-        assertTrue(foundTweet.isPresent());
-        assertTrue(foundTweet.get().isDeleted());
+        // Then - 論理削除されたツイートは取得できない
+        assertFalse(foundTweet.isPresent());
     }
 
     @Test

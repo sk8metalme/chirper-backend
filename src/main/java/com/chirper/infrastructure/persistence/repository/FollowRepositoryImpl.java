@@ -5,6 +5,7 @@ import com.chirper.domain.repository.IFollowRepository;
 import com.chirper.domain.valueobject.UserId;
 import com.chirper.infrastructure.persistence.entity.FollowJpaEntity;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,5 +80,59 @@ public class FollowRepositoryImpl implements IFollowRepository {
     public boolean existsByFollowerAndFollowed(UserId followerUserId, UserId followedUserId) {
         return springDataFollowRepository
             .existsByFollowerUserIdAndFollowedUserId(followerUserId.value(), followedUserId.value());
+    }
+
+    @Override
+    public List<UserId> findFollowerUserIds(UserId followedUserId, int offset, int limit) {
+        // offsetがlimitで割り切れない場合は呼び出し元のロジックに問題がある
+        if (offset % limit != 0) {
+            throw new IllegalArgumentException("offset must be a multiple of limit");
+        }
+        int pageNumber = offset / limit;
+        PageRequest pageRequest = PageRequest.of(pageNumber, limit);
+        List<UUID> uuidList = springDataFollowRepository.findFollowerUserIds(
+            followedUserId.value(),
+            pageRequest
+        );
+        return uuidList.stream()
+            .map(UserId::new)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserId> findFollowingUserIds(UserId followerUserId, int offset, int limit) {
+        // offsetがlimitで割り切れない場合は呼び出し元のロジックに問題がある
+        if (offset % limit != 0) {
+            throw new IllegalArgumentException("offset must be a multiple of limit");
+        }
+        int pageNumber = offset / limit;
+        PageRequest pageRequest = PageRequest.of(pageNumber, limit);
+        List<UUID> uuidList = springDataFollowRepository.findFollowingUserIds(
+            followerUserId.value(),
+            pageRequest
+        );
+        return uuidList.stream()
+            .map(UserId::new)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserId> findFollowedUserIdsIn(UserId followerUserId, List<UserId> targetUserIds) {
+        if (targetUserIds == null || targetUserIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<UUID> targetUuids = targetUserIds.stream()
+            .map(UserId::value)
+            .collect(Collectors.toList());
+
+        List<UUID> followedUuids = springDataFollowRepository.findFollowedUserIdsIn(
+            followerUserId.value(),
+            targetUuids
+        );
+
+        return followedUuids.stream()
+            .map(UserId::new)
+            .collect(Collectors.toList());
     }
 }
