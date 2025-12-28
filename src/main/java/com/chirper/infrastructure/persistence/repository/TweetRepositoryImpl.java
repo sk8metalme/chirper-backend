@@ -39,7 +39,7 @@ public class TweetRepositoryImpl implements ITweetRepository {
 
     @Override
     public Optional<Tweet> findById(TweetId tweetId) {
-        return springDataTweetRepository.findById(tweetId.value())
+        return springDataTweetRepository.findByIdAndIsDeletedFalse(tweetId.value())
             .map(TweetJpaEntity::toDomainEntity);
     }
 

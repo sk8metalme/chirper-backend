@@ -372,13 +372,13 @@ class TimelineControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("GET /timeline - JWT認証なしの場合403を返す")
-    void getTimeline_withoutAuthentication_shouldReturn403() {
+    @DisplayName("GET /timeline - JWT認証なしの場合401を返す")
+    void getTimeline_withoutAuthentication_shouldReturn401() {
         given()
         .when()
             .get("/timeline")
         .then()
-            .statusCode(403);  // Spring Securityは認証なしの場合403 Forbiddenを返す
+            .statusCode(401);  // カスタムAuthenticationEntryPointにより401 Unauthorizedを返す
     }
 
     @Test

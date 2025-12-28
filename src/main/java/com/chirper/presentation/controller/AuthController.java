@@ -20,10 +20,16 @@ public class AuthController {
 
     private final RegisterUserUseCase registerUserUseCase;
     private final LoginUserUseCase loginUserUseCase;
+    private final com.chirper.domain.service.AuthenticationService authenticationService;
 
-    public AuthController(RegisterUserUseCase registerUserUseCase, LoginUserUseCase loginUserUseCase) {
+    public AuthController(
+        RegisterUserUseCase registerUserUseCase,
+        LoginUserUseCase loginUserUseCase,
+        com.chirper.domain.service.AuthenticationService authenticationService
+    ) {
         this.registerUserUseCase = registerUserUseCase;
         this.loginUserUseCase = loginUserUseCase;
+        this.authenticationService = authenticationService;
     }
 
     @PostMapping("/register")
@@ -39,11 +45,19 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         var loginResult = loginUserUseCase.execute(request.username(), request.password());
+
+        // トークンから実際の有効期限を取得
+        java.time.Instant expiresAt = authenticationService.getExpirationTime(loginResult.token());
+        if (expiresAt == null) {
+            // トークンが無効な場合（通常発生しないはず）
+            expiresAt = java.time.Instant.now().plusSeconds(3600);
+        }
+
         LoginResponse response = new LoginResponse(
             loginResult.token(),
             loginResult.userId().value(),
             loginResult.username(),
-            java.time.Instant.now().plusSeconds(3600)
+            expiresAt
         );
         return ResponseEntity.ok(response);
     }

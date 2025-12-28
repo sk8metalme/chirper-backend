@@ -23,22 +23,24 @@ public class AuthenticationService {
 
     private final SecretKey jwtSecretKey;
     private final Clock clock;
-    private static final long JWT_EXPIRATION_HOURS = 1;
+    private final long jwtExpirationSeconds;
 
     /**
      * コンストラクタ
      * @param jwtSecret JWTシークレットキー（環境変数から取得）
+     * @param jwtExpirationSeconds JWT有効期限（秒）
      */
-    public AuthenticationService(String jwtSecret) {
-        this(jwtSecret, Clock.systemUTC());
+    public AuthenticationService(String jwtSecret, long jwtExpirationSeconds) {
+        this(jwtSecret, jwtExpirationSeconds, Clock.systemUTC());
     }
 
     /**
      * コンストラクタ（テスト用: Clockを指定可能）
      * @param jwtSecret JWTシークレットキー（環境変数から取得）
+     * @param jwtExpirationSeconds JWT有効期限（秒）
      * @param clock 時刻取得用Clock
      */
-    public AuthenticationService(String jwtSecret, Clock clock) {
+    public AuthenticationService(String jwtSecret, long jwtExpirationSeconds, Clock clock) {
         if (jwtSecret == null || jwtSecret.isBlank()) {
             throw new IllegalArgumentException("JWT secret key cannot be null or blank");
         }
@@ -46,7 +48,11 @@ public class AuthenticationService {
         if (jwtSecret.getBytes(StandardCharsets.UTF_8).length < 32) {
             throw new IllegalArgumentException("JWT secret key must be at least 32 bytes");
         }
+        if (jwtExpirationSeconds <= 0) {
+            throw new IllegalArgumentException("JWT expiration seconds must be positive");
+        }
         this.jwtSecretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        this.jwtExpirationSeconds = jwtExpirationSeconds;
         this.clock = clock != null ? clock : Clock.systemUTC();
     }
 
@@ -70,7 +76,7 @@ public class AuthenticationService {
      */
     public String generateJwtToken(UserId userId) {
         Instant now = clock.instant();
-        Instant expirationTime = now.plus(JWT_EXPIRATION_HOURS, ChronoUnit.HOURS);
+        Instant expirationTime = now.plusSeconds(jwtExpirationSeconds);
 
         return Jwts.builder()
             .subject(userId.toString())
